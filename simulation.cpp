@@ -128,6 +128,12 @@ void Simulation::takeSimulationStep()
 
     bodyInstance_->c += params_.timeStep*bodyInstance_->cvel;
     bodyInstance_->theta = VectorMath::axisAngle(VectorMath::rotationMatrix(params_.timeStep*bodyInstance_->w)*VectorMath::rotationMatrix(bodyInstance_->theta));
+
+    cloth_->verts_ += cloth_->velocities_;
+    VectorXd clothForce = computeClothForce();
+    cout << "test" << endl;
+    cloth_->velocities_ += params_.timeStep * cloth_->massInv_ * clothForce;
+    cout << "yay" << endl;
 }
 
 void Simulation::clearScene()
@@ -147,4 +153,13 @@ void Simulation::accelerateBody(double vx, double vy, double vz, double wx, doub
 {
     bodyInstance_->cvel += Vector3d(vx,vy,vz);
     bodyInstance_->w += Vector3d(wx,wy,wz);
+}
+
+VectorXd Simulation::computeClothForce() {
+    VectorXd vertPos = cloth_->verts_;
+    VectorXd force(3*cloth_->mesh_->getNumVerts());
+    force.setZero();
+
+    force -= params_.gravityG * cloth_->mass_ * vertPos;
+    return force;
 }
