@@ -20,6 +20,7 @@ using namespace std;
 Simulation::Simulation(const SimParameters &params) : params_(params), time_(0), floorTex_(0)
 {
     loadRigidBodies();
+    cloth_ = new Cloth();
     bodyInstance_ = NULL;
     clearScene();
 }
@@ -116,6 +117,7 @@ void Simulation::renderObjects()
     renderLock_.lock();
     {
         bodyInstance_->render();
+        cloth_->render();
     }
     renderLock_.unlock();
 }
@@ -136,6 +138,7 @@ void Simulation::clearScene()
         Vector3d pos(5, 0, 3);
         Vector3d zero(0,0,0);
         bodyInstance_ = new RigidBodyInstance(*bodyTemplate_, pos, zero, 1.0);
+        cloth_->resetState();
     }
     renderLock_.unlock();
 }

@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     camera.cpp \
     rotator.cpp \
     signeddistancefield.cpp \
-    collisions/CTCD.cpp
+    collisions/CTCD.cpp \
+    cloth.cpp
 
 HEADERS  += mainwindow.h \
     glpanel.h \
@@ -42,7 +43,8 @@ HEADERS  += mainwindow.h \
     rotator.h \
     signeddistancefield.h \
     collisions/Distance.h \
-    collisions/CTCD.h
+    collisions/CTCD.h \
+    cloth.h
 
 FORMS    += mainwindow.ui
 

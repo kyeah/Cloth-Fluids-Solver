@@ -8,6 +8,7 @@
 #include <QMutex>
 #include "simparameters.h"
 #include <QGLWidget>
+#include "cloth.h"
 
 class RigidBodyTemplate;
 class RigidBodyInstance;
@@ -42,6 +43,7 @@ private:
 
     RigidBodyTemplate * bodyTemplate_;
     RigidBodyInstance * bodyInstance_;
+    Cloth *cloth_;
 };
 
 #endif // SIMULATION_H
