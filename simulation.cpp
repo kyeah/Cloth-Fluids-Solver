@@ -130,10 +130,9 @@ void Simulation::takeSimulationStep()
     bodyInstance_->theta = VectorMath::axisAngle(VectorMath::rotationMatrix(params_.timeStep*bodyInstance_->w)*VectorMath::rotationMatrix(bodyInstance_->theta));
 
     cloth_->verts_ += cloth_->velocities_;
+    VectorXd gravForce = computeGravForce();
     VectorXd clothForce = computeClothForce();
-    cout << "test" << endl;
-    cloth_->velocities_ += params_.timeStep * cloth_->massInv_ * clothForce;
-    cout << "yay" << endl;
+    cloth_->velocities_ += params_.timeStep * gravForce + params_.timeStep * cloth_->massInv_ * clothForce;
 }
 
 void Simulation::clearScene()
@@ -155,11 +154,22 @@ void Simulation::accelerateBody(double vx, double vy, double vz, double wx, doub
     bodyInstance_->w += Vector3d(wx,wy,wz);
 }
 
-VectorXd Simulation::computeClothForce() {
+VectorXd Simulation::computeGravForce() {
     VectorXd vertPos = cloth_->verts_;
-    VectorXd force(3*cloth_->mesh_->getNumVerts());
+    VectorXd force(vertPos.rows());
     force.setZero();
 
-    force -= params_.gravityG * cloth_->mass_ * vertPos;
+    if (params_.activeForces & SimParameters::F_GRAVITY) {
+        for (int i = 2; i < force.rows(); i+=3) {
+            force[i] += params_.gravityG;
+        }
+    }
+    return force;
+}
+
+VectorXd Simulation::computeClothForce() {
+    VectorXd vertPos = cloth_->verts_;
+    VectorXd force(vertPos.rows());
+    force.setZero();
     return force;
 }

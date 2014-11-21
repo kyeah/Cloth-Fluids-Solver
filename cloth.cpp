@@ -1,12 +1,14 @@
 #include "cloth.h"
 #include <QGLWidget>
 #include <Eigen/Geometry>
+#include <iostream>
 
 using namespace std;
 using namespace Eigen;
 
 Cloth::Cloth() {
     mesh_ = new Mesh("resources/square.obj");
+    mesh_->translate(Vector3d(5,0,4));
     int num_verts = mesh_->getNumVerts();
     verts_.resize(3*num_verts);
     velocities_.resize(3*num_verts);
@@ -49,7 +51,7 @@ void Cloth::computeMassMatrices() {
 
 VectorXd Cloth::getVertNormals()
 {
-    VectorXd vertNormals;
+    VectorXd vertNormals(3*mesh_->getNumVerts());
     vector<double> verttotalarea;
 
     vertNormals.setZero();

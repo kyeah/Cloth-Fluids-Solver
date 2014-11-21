@@ -30,6 +30,7 @@ public:
     void renderObjects();
     void clearScene();
     void accelerateBody(double vx, double vy, double vz, double wx, double wy, double wz);
+    Eigen::VectorXd computeGravForce();
     Eigen::VectorXd computeClothForce();
 
 private:
