@@ -45,8 +45,8 @@ void Cloth::computeMassMatrices() {
         vertMasses[i] /= 3.;
 
         for (int j = 0; j < 3; j++) {
-            mass_(i+j, i+j) = vertMasses[i];
-            massInv_(i+j, i+j) = 1. / vertMasses[i];
+            mass_(3*i+j, 3*i+j) = vertMasses[i];
+            massInv_(3*i+j, 3*i+j) = 1. / vertMasses[i];
         }
     }
 }
@@ -112,16 +112,6 @@ void Cloth::render()
 
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_NORMAL_ARRAY);
-        glColor4d(0, 0, 1, 1);
-        glBegin(GL_LINES);
-        for (int i = 0; i < mesh_->getNumVerts(); i++) {
-            Vector3d vert = getVert(i);
-            Vector3d vel = velocities_.segment<3>(3*i);
-            Vector3d vec = vert + vel;
-            glVertex3f(vert[0], vert[1], vert[2]);
-            glVertex3f(vec[0], vec[1], vec[2]);
-        }
-        glEnd();
     }
     glPopMatrix();
 }
@@ -172,9 +162,9 @@ void Cloth::calculateAmats() {
             A(i, 3) = b2*b4;
         }
 
-        gmats_.push_back(g/1);
-        bmats_.push_back(g.inverse() * e);
-        amats_.push_back(A/1);
+        gmats_.push_back(g/1.);
+        bmats_.push_back(bmat/1.);
+        amats_.push_back(A/1.);
     }
 }
 

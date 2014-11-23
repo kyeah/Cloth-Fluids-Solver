@@ -231,9 +231,9 @@ VectorXd Simulation::computeClothForce() {
 
             Matrix3d epsilon = bmat.transpose() * dg * bmat;
             VectorXd epsilonv(9,1);
-            epsilonv.segment<3>(0) = epsilon.block<1,3>(0,0);
-            epsilonv.segment<3>(3) = epsilon.block<1,3>(1,0);
-            epsilonv.segment<3>(6) = epsilon.block<1,3>(2,0);
+            epsilonv.segment<3>(0) = epsilon.block<1,3>(0,0).transpose();
+            epsilonv.segment<3>(3) = epsilon.block<1,3>(1,0).transpose();
+            epsilonv.segment<3>(6) = epsilon.block<1,3>(2,0).transpose();
             epsilonv /= 2.0;
 
             MatrixXd A = cloth_->amats_[i];
