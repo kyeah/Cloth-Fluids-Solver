@@ -184,7 +184,7 @@ void Cloth::fillHinges() {
 
                     // For each other edge
                     for (int i2 = 0; i2 < 3; i2++) {
-                        for (int j2 = 0; j2 < 3; j2++) {
+                        for (int j2 = i2+1; j2 < 3; j2++) {
                             int v1i = fverts[i];
                             int v1j = fverts[j];
                             int v2i = f2verts[i2];

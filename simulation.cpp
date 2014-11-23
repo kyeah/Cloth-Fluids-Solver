@@ -280,7 +280,7 @@ VectorXd Simulation::computeClothForce() {
 
             Vector3d di = -(Dn1_coeff.transpose()*Dn1_i - Dn0_coeff.transpose()*Dn0_i).transpose();
             Vector3d dj = -(Dn1_coeff.transpose()*Dn1_j - Dn0_coeff.transpose()*Dn0_j).transpose();
-            Vector3d dk = -(Dn0_coeff.transpose()*Dn0_k).transpose();
+            Vector3d dk = -(-Dn0_coeff.transpose()*Dn0_k).transpose();
             Vector3d dl = -(Dn1_coeff.transpose()*Dn1_l).transpose();
 
             force.segment<3>(3*hinge.ep1) += rest_coeff * di;
@@ -301,8 +301,11 @@ VectorXd Simulation::computeClothForce() {
 
             if(bodyInstance_->getTemplate().getSDF()->signedDistanceAndGradient(testpt, dist, Ddist) && dist < 0)
             {
-                double stiffness = params_.penaltyStiffness; // * (relvel.dot(otherrot*Ddist) > 0 ? params_.cor : 1.0);
-                force.segment<3>(3*i) += -stiffness*dist*bodyrot*Ddist;//cloth_->mesh_->getNumVerts();
+                Vector3d vel1 = cloth_->velocities_.segment<3>(3*i);
+                Vector3d vel2 = bodyInstance_->cvel +bodyrot*(bodyInstance_->w.cross(testpt));
+                Vector3d relvel = (vel1-vel2);
+                double stiffness = params_.penaltyStiffness * (relvel.dot(bodyrot*Ddist) > 0 ? params_.cor : 1.0);
+                force.segment<3>(3*i) += -stiffness*dist*bodyrot*Ddist;
             }
         }
     }
