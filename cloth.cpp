@@ -112,6 +112,16 @@ void Cloth::render()
 
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_NORMAL_ARRAY);
+        glColor4d(0, 0, 1, 1);
+        glBegin(GL_LINES);
+        for (int i = 0; i < mesh_->getNumVerts(); i++) {
+            Vector3d vert = getVert(i);
+            Vector3d vel = velocities_.segment<3>(3*i);
+            Vector3d vec = vert + vel;
+            glVertex3f(vert[0], vert[1], vert[2]);
+            glVertex3f(vec[0], vec[1], vec[2]);
+        }
+        glEnd();
     }
     glPopMatrix();
 }
@@ -171,7 +181,6 @@ void Cloth::calculateAmats() {
 void Cloth::fillHinges() {
 
     // For each face
-    cout << mesh_->getNumFaces() << endl;
     for (int faceidx = 0; faceidx < mesh_->getNumFaces(); faceidx++) {
         Vector3i fverts = mesh_->getFace(faceidx);
 

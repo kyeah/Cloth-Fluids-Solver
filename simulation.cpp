@@ -291,8 +291,20 @@ VectorXd Simulation::computeClothForce() {
     }
 
     if (params_.activeForces & SimParameters::F_CONTACT) {
+        for (int i=0; i < cloth_->mesh_->getNumVerts(); i++) {
+            Vector3d pt = cloth_->getVert(i);
 
+            double dist;
+            Vector3d Ddist;
+            Matrix3d bodyrot = VectorMath::rotationMatrix(bodyInstance_->theta);
+            Vector3d testpt = bodyrot.transpose()*(pt - bodyInstance_->c);
+
+            if(bodyInstance_->getTemplate().getSDF()->signedDistanceAndGradient(testpt, dist, Ddist) && dist < 0)
+            {
+                double stiffness = params_.penaltyStiffness; // * (relvel.dot(otherrot*Ddist) > 0 ? params_.cor : 1.0);
+                force.segment<3>(3*i) += -stiffness*dist*bodyrot*Ddist;//cloth_->mesh_->getNumVerts();
+            }
+        }
     }
-
     return force;
 }
