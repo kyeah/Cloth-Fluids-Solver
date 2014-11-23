@@ -129,10 +129,21 @@ void Simulation::takeSimulationStep()
     bodyInstance_->c += params_.timeStep*bodyInstance_->cvel;
     bodyInstance_->theta = VectorMath::axisAngle(VectorMath::rotationMatrix(params_.timeStep*bodyInstance_->w)*VectorMath::rotationMatrix(bodyInstance_->theta));
 
-    cloth_->verts_ += cloth_->velocities_;
+    cloth_->verts_ += params_.timeStep * cloth_->velocities_;
+
     VectorXd gravForce = computeGravForce();
     VectorXd clothForce = computeClothForce();
-    cloth_->velocities_ += params_.timeStep * gravForce + params_.timeStep * cloth_->massInv_ * clothForce;
+    VectorXd dampingForce = -params_.dampingCoeff * cloth_->velocities_;
+
+    if (!(params_.activeForces & SimParameters::F_DAMPING)) {
+        dampingForce.setZero();
+    }
+
+    cloth_->velocities_ += params_.timeStep * (gravForce + dampingForce + cloth_->massInv_ * clothForce);
+
+    if (params_.pinCorner) {
+        cloth_->velocities_.segment<3>(0) = Vector3d(0,0,0);
+    }
 }
 
 void Simulation::clearScene()
@@ -171,5 +182,117 @@ VectorXd Simulation::computeClothForce() {
     VectorXd vertPos = cloth_->verts_;
     VectorXd force(vertPos.rows());
     force.setZero();
+
+    // Stretching Force
+    // DqV = 2Ev.transpose() * DqEv
+    // DqEv = DdgEvDqd
+    // DdgEv = 0.5[A]Dqdgv
+    // Dqdgv = Dq(gv - gvtemplate) = Dqgv = DevgvDqev = [C]dqev
+    // dqev = [D]dq
+    // DqV = 2Ev.transpose() * 0.5[A][C][D]dqdqd
+    // F = -(DqV).transpose() = -[D.t][C.t][A.t]Ev where Ev = 9x1
+
+    Matrix3d I = Matrix3d::Identity();
+
+    if (params_.activeForces & SimParameters::F_STRETCHING) {
+        MatrixXd D(6,9);
+        D.setZero();
+        D.block<3,3>(0,0) = -I;
+        D.block<3,3>(0,3) = I;
+        D.block<3,3>(3,0) = -I;
+        D.block<3,3>(3,6) = I;
+
+        for (int i = 0; i < cloth_->mesh_->getNumFaces(); i++) {
+            Vector3i fverts = cloth_->mesh_->getFace(i);
+            Vector3d pts[3];
+            for(int j=0; j<3; j++)
+                pts[j] = cloth_->verts_.segment<3>(3*fverts[j]);
+
+            Vector3d e1 = pts[1] - pts[0];
+            Vector3d e2 = pts[2] - pts[0];
+            MatrixXd bmat = cloth_->bmats_[i];
+
+            Matrix2d g;
+            g(0,0) = e1.dot(e1);
+            g(0,1) = e1.dot(e2);
+            g(1,0) = g(0,1);
+            g(1,1) = e2.dot(e2);
+
+            Matrix2d dg = g - cloth_->gmats_[i];
+
+            MatrixXd C(4,6);
+            C.setZero();
+            C.block<1,3>(0,0) = 2*e1.transpose();
+            C.block<1,3>(1,0) = e2.transpose();
+            C.block<1,3>(1,3) = e1.transpose();
+            C.block<1,3>(2,0) = e2.transpose();
+            C.block<1,3>(2,3) = e1.transpose();
+            C.block<1,3>(3,3) = 2*e2.transpose();
+
+            Matrix3d epsilon = bmat.transpose() * dg * bmat;
+            VectorXd epsilonv(9,1);
+            epsilonv.segment<3>(0) = epsilon.block<1,3>(0,0);
+            epsilonv.segment<3>(3) = epsilon.block<1,3>(1,0);
+            epsilonv.segment<3>(6) = epsilon.block<1,3>(2,0);
+            epsilonv /= 2.0;
+
+            MatrixXd A = cloth_->amats_[i];
+
+            VectorXd df = -D.transpose() * C.transpose() * A.transpose() * epsilonv;
+            df *= cloth_->mesh_->getFaceArea(i) * params_.stretchingK;
+
+            for (int j=0; j < 3; j++) {
+                force.segment<3>(3*fverts[j]) += df.segment<3>(3*j);
+            }
+        }
+    }
+
+    if (params_.activeForces & SimParameters::F_BENDING) {
+        for (int i = 0; i < cloth_->hinges_.size(); i++) {
+            Hinge hinge = cloth_->hinges_[i];
+            Vector3d pi = cloth_->getVert(hinge.ep1);
+            Vector3d pj = cloth_->getVert(hinge.ep2);
+            Vector3d pk = cloth_->getVert(hinge.v1);
+            Vector3d pl = cloth_->getVert(hinge.v2);
+
+            Vector3d n0 = (pj-pi).cross(pk-pi);
+            Vector3d n1 = (pl-pi).cross(pj-pi);
+
+            Vector3d n0xn1 = n0.cross(n1);
+            double theta = 2*atan2(n0xn1.norm(), n0.norm()*n1.norm() + n0.dot(n1));
+
+            if (theta == 0) {
+                continue;
+            }
+
+            double rest_coeff = params_.bendingK * hinge.restLengthSq * 2 * theta / hinge.totalArea;
+
+            Vector3d Dn1_coeff = (n0xn1/n0xn1.norm()).cross(n1/n1.squaredNorm());
+            Vector3d Dn0_coeff = (n0xn1/n0xn1.norm()).cross(n0/n0.squaredNorm());
+
+            Matrix3d Dn0_i = -VectorMath::crossProductMatrix(pj-pi)*I + VectorMath::crossProductMatrix(pk-pi)*I;
+            Matrix3d Dn0_j = VectorMath::crossProductMatrix(pj-pi)*I;
+            Matrix3d Dn0_k = -VectorMath::crossProductMatrix(pk-pi)*I;
+
+            Matrix3d Dn1_i = -VectorMath::crossProductMatrix(pl-pi)*I + VectorMath::crossProductMatrix(pj-pi)*I;
+            Matrix3d Dn1_j = -VectorMath::crossProductMatrix(pj-pi)*I;
+            Matrix3d Dn1_l = VectorMath::crossProductMatrix(pl-pi)*I;
+
+            Vector3d di = -(Dn1_coeff.transpose()*Dn1_i - Dn0_coeff.transpose()*Dn0_i).transpose();
+            Vector3d dj = -(Dn1_coeff.transpose()*Dn1_j - Dn0_coeff.transpose()*Dn0_j).transpose();
+            Vector3d dk = -(Dn0_coeff.transpose()*Dn0_k).transpose();
+            Vector3d dl = -(Dn1_coeff.transpose()*Dn1_l).transpose();
+
+            force.segment<3>(3*hinge.ep1) += rest_coeff * di;
+            force.segment<3>(3*hinge.ep2) += rest_coeff * dj;
+            force.segment<3>(3*hinge.v1) += rest_coeff * dk;
+            force.segment<3>(3*hinge.v2) += rest_coeff * dl;
+        }
+    }
+
+    if (params_.activeForces & SimParameters::F_CONTACT) {
+
+    }
+
     return force;
 }
