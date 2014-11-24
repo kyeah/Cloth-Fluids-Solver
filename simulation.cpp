@@ -275,8 +275,8 @@ VectorXd Simulation::computeClothForce() {
             Matrix3d Dn0_k = VectorMath::crossProductMatrix(pj-pi);
 
             Matrix3d Dn1_i = VectorMath::crossProductMatrix(pj-pl);
-            Matrix3d Dn1_j = VectorMath::crossProductMatrix(pi-pj);
-            Matrix3d Dn1_l = VectorMath::crossProductMatrix(pl-pi);
+            Matrix3d Dn1_j = VectorMath::crossProductMatrix(pl-pi);
+            Matrix3d Dn1_l = VectorMath::crossProductMatrix(pi-pj);
 
             Vector3d di = -(Dn1_coeff.transpose()*Dn1_i - Dn0_coeff.transpose()*Dn0_i).transpose();
             Vector3d dj = -(Dn1_coeff.transpose()*Dn1_j - Dn0_coeff.transpose()*Dn0_j).transpose();
