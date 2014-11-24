@@ -270,13 +270,13 @@ VectorXd Simulation::computeClothForce() {
             Vector3d Dn1_coeff = (n0xn1/n0xn1.norm()).cross(n1/n1.squaredNorm());
             Vector3d Dn0_coeff = (n0xn1/n0xn1.norm()).cross(n0/n0.squaredNorm());
 
-            Matrix3d Dn0_i = -VectorMath::crossProductMatrix(pj-pi)*I + VectorMath::crossProductMatrix(pk-pi)*I;
-            Matrix3d Dn0_j = VectorMath::crossProductMatrix(pj-pi)*I;
-            Matrix3d Dn0_k = -VectorMath::crossProductMatrix(pk-pi)*I;
+            Matrix3d Dn0_i = VectorMath::crossProductMatrix(pk-pj);
+            Matrix3d Dn0_j = VectorMath::crossProductMatrix(pi-pk);
+            Matrix3d Dn0_k = VectorMath::crossProductMatrix(pj-pi);
 
-            Matrix3d Dn1_i = -VectorMath::crossProductMatrix(pl-pi)*I + VectorMath::crossProductMatrix(pj-pi)*I;
-            Matrix3d Dn1_j = -VectorMath::crossProductMatrix(pj-pi)*I;
-            Matrix3d Dn1_l = VectorMath::crossProductMatrix(pl-pi)*I;
+            Matrix3d Dn1_i = VectorMath::crossProductMatrix(pj-pl);
+            Matrix3d Dn1_j = VectorMath::crossProductMatrix(pi-pj);
+            Matrix3d Dn1_l = VectorMath::crossProductMatrix(pl-pi);
 
             Vector3d di = -(Dn1_coeff.transpose()*Dn1_i - Dn0_coeff.transpose()*Dn0_i).transpose();
             Vector3d dj = -(Dn1_coeff.transpose()*Dn1_j - Dn0_coeff.transpose()*Dn0_j).transpose();
