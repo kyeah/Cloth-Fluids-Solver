@@ -1,0 +1,5 @@
+*.pro.user
+*.a
+*.o
+*.sdf
+fluids
