@@ -23,6 +23,7 @@ Simulation::Simulation(const SimParameters &params) : params_(params), time_(0),
     loadRigidBodies();
     cloth_ = new Cloth();
     bodyInstance_ = NULL;
+    fluidvx = fluidvy = fluidfx = fluidfy = fluiddensity = NULL;
     clearScene();
 }
 
@@ -187,6 +188,11 @@ void Simulation::clearScene()
     renderLock_.lock();
     {
         delete bodyInstance_;
+        delete fluidvx;
+        delete fluidvy;
+        delete fluidfx;
+        delete fluidfy;
+        delete fluiddensity;
         Vector3d pos(5, 0, 3);
         Vector3d zero(0,0,0);
         bodyInstance_ = new RigidBodyInstance(*bodyTemplate_, pos, zero, 1.0);
@@ -195,6 +201,7 @@ void Simulation::clearScene()
         fluidvy = new Mat2D(params_.gridSize, params_.gridSize);
         fluidfx = new Mat2D(params_.gridSize, params_.gridSize);
         fluidfy = new Mat2D(params_.gridSize, params_.gridSize);
+        fluiddensity = new Mat2D(params_.gridSize, params_.gridSize);
     }
     renderLock_.unlock();
 }
@@ -241,8 +248,8 @@ void Simulation::stableFluidSolve(Mat2D &u, Mat2D &v, Mat2D &u0, Mat2D &v0) {
 
           x0 = n*(x-dt*u0[i+n*j])-0.5; y0 = n*(y-dt*v0[i+n*j])-0.5;
 
-          i0 = floor(x0); s = x0 -i0; i0 = (n+(i0%n))%n; i1 = (i0+1)%n;
-          j0 = floor(y0); t = y0 -j0; j0 = (n+(j0%n))%n; j1 = (j0+1)%n;
+          i0 = floor(x0); s = x0 -i0; i0 = (n+(i0%n))%n; i1 = (i0+1);
+          j0 = floor(y0); t = y0 -j0; j0 = (n+(j0%n))%n; j1 = (j0+1);
 
           u[i+n*j] = (1-s)*((1-t)*u0[i0+n*j0]+t*u0[i0+n*j1])+
                         s *((1-t)*u0[i1+n*j0]+t*u0[i1+n*j1]);
@@ -258,8 +265,8 @@ void Simulation::stableFluidSolve(Mat2D &u, Mat2D &v, Mat2D &u0, Mat2D &v0) {
   for ( i=0 ; i<n ; i++ )
     for ( j=0 ; j<n ; j++ )
       { u0[i+(n+2)*j] = u[i+n*j]; v0[i+(n+2)*j] = v[i+n*j]; }
+*/
 
-  /*
   FFT<double> fft;
   MatrixXcd Uf(n,n), Vf(n,n);
   for (int i = 0; i < n; i++) {
@@ -269,7 +276,7 @@ void Simulation::stableFluidSolve(Mat2D &u, Mat2D &v, Mat2D &u0, Mat2D &v0) {
       }
       VectorXcd B(n);
       fft.fwd(B, A);
-      Uf.block<n,1>(0,i) = B;
+      Uf.block(0,i,n,1) = B;
   }
   for (int i = 0; i < n; i++) {
       VectorXd A(n);
@@ -278,9 +285,8 @@ void Simulation::stableFluidSolve(Mat2D &u, Mat2D &v, Mat2D &u0, Mat2D &v0) {
       }
       VectorXcd B(n);
       fft.fwd(B, A);
-      Vf.block<n,1>(0,i) = B;
+      Vf.block(0,i,n,1) = B;
   }
-  //fft.fwd(1,n,u0); fft.fwd(1,n,v0);
 
   // Diffusion and Projection (Mass Conservation)
   for ( i=0 ; i<=n ; i+=2 ) {
@@ -293,14 +299,14 @@ void Simulation::stableFluidSolve(Mat2D &u, Mat2D &v, Mat2D &u0, Mat2D &v0) {
           if ( r==0.0 ) continue;
 
           f = exp(-r*dt*visc);
-          U[0] = u0[i +(n+2)*j]; V[0] = v0[i +(n+2)*j];
-          U[1] = u0[i+1+(n+2)*j]; V[1] = v0[i+1+(n+2)*j];
+          U[0] = u0[i +(n)*j]; V[0] = v0[i +(n)*j];
+          U[1] = u0[i+1+(n)*j]; V[1] = v0[i+1+(n)*j];
 
-          u0[i +(n+2)*j] = f*( (1-x*x/r)*U[0] -x*y/r *V[0] );
-          u0[i+1+(n+2)*j] = f*( (1-x*x/r)*U[1] -x*y/r *V[1] );
+          u0[i +(n)*j] = f*( (1-x*x/r)*U[0] -x*y/r *V[0] );
+          u0[i+1+(n)*j] = f*( (1-x*x/r)*U[1] -x*y/r *V[1] );
 
-          v0[i+ (n+2)*j] = f*( -y*x/r *U[0] + (1-y*y/r)*V[0] );
-          v0[i+1+(n+2)*j] = f*( -y*x/r *U[1] + (1-y*y/r)*V[1] );
+          v0[i+ (n)*j] = f*( -y*x/r *U[0] + (1-y*y/r)*V[0] );
+          v0[i+1+(n)*j] = f*( -y*x/r *U[1] + (1-y*y/r)*V[1] );
       }
   }
 
@@ -330,7 +336,7 @@ void Simulation::stableFluidSolve(Mat2D &u, Mat2D &v, Mat2D &u0, Mat2D &v0) {
 
   //fft(-1,n,u0); FFT(-1,n,v0);
   f = 1.0/(n*n);
-
+/*
   for ( i=0 ; i<n ; i++ )
     for ( j=0 ; j<n ; j++ )
       { u[i+n*j] = f*u0[i+(n+2)*j]; v[i+n*j] = f*v0[i+(n+2)*j ]; }

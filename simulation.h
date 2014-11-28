@@ -48,7 +48,7 @@ private:
     RigidBodyTemplate * bodyTemplate_;
     RigidBodyInstance * bodyInstance_;
     Cloth *cloth_;
-    Mat2D *fluidvx, *fluidvy, *fluidfx, *fluidfy;
+    Mat2D *fluidvx, *fluidvy, *fluidfx, *fluidfy, *fluiddensity;
 };
 
 #endif // SIMULATION_H
