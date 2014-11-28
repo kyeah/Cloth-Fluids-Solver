@@ -33,7 +33,7 @@ public:
     void accelerateBody(double vx, double vy, double vz, double wx, double wy, double wz);
     Eigen::VectorXd computeGravForce();
     Eigen::VectorXd computeClothForce();
-    void stableFluidSolve(Mat3D &u, Mat3D &v, Mat3D &u0, Mat3D &v0);
+    void stableFluidSolve(Mat2D &u, Mat2D &v, Mat2D &u0, Mat2D &v0);
 
 private:
     void loadFloorTexture();
@@ -48,6 +48,7 @@ private:
     RigidBodyTemplate * bodyTemplate_;
     RigidBodyInstance * bodyInstance_;
     Cloth *cloth_;
+    Mat2D *fluidvx, *fluidvy, *fluidfx, *fluidfy;
 };
 
 #endif // SIMULATION_H

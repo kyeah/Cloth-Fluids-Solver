@@ -119,6 +119,23 @@ void Simulation::renderObjects()
     {
         bodyInstance_->render();
         cloth_->render();
+        glPointSize(5);
+        glBegin(GL_POINTS);
+        for (int i = 0; i < params_.gridSize; i++) {
+            for (int j = 0; j < params_.gridSize; j++) {
+                float val = fluidvx->valAt(i,j);
+                float valy = fluidvy->valAt(i,j);
+                while (val > 255) {
+                    val -= 255;
+                }
+                while (valy > 255) {
+                    valy -= 255;
+                }
+                glColor3f(valy, 0, val);
+                glVertex3f(i, 0, j + 5);
+            }
+        }
+        glEnd();
     }
     renderLock_.unlock();
 }
@@ -127,6 +144,7 @@ void Simulation::takeSimulationStep()
 {
     time_ += params_.timeStep;
 
+    /*
     bodyInstance_->c += params_.timeStep*bodyInstance_->cvel;
     bodyInstance_->theta = VectorMath::axisAngle(VectorMath::rotationMatrix(params_.timeStep*bodyInstance_->w)*VectorMath::rotationMatrix(bodyInstance_->theta));
 
@@ -144,7 +162,24 @@ void Simulation::takeSimulationStep()
 
     if (params_.pinCorner) {
         cloth_->velocities_.segment<3>(0) = Vector3d(0,0,0);
+    }*/
+
+    for (int i = 0; i < params_.gridSize; i++) {
+        for (int j = 0; j < params_.gridSize; j++) {
+            fluidfx->valAt(i, j) = -9.8;
+        }
     }
+    fluidfx->valAt(1, params_.gridSize - 1) = 20*VectorMath::randomUnitIntervalReal();
+    fluidfy->valAt(1, params_.gridSize - 1) = 60*VectorMath::randomUnitIntervalReal();
+    fluidfx->valAt(2, params_.gridSize - 1) = 20*VectorMath::randomUnitIntervalReal();
+    fluidfy->valAt(2, params_.gridSize - 1) = 60*VectorMath::randomUnitIntervalReal();
+    fluidfx->valAt(3, params_.gridSize - 1) = 20*VectorMath::randomUnitIntervalReal();
+    fluidfy->valAt(3, params_.gridSize - 1) = 60*VectorMath::randomUnitIntervalReal();
+    for (int i = 0; i < params_.gridSize; i++) {
+        fluidfx->valAt(i, 0) = -98*3;
+        fluidfy->valAt(i, 0) = 5;
+    }
+    stableFluidSolve(*fluidvx, *fluidvy, *fluidfx, *fluidfy);
 }
 
 void Simulation::clearScene()
@@ -156,6 +191,10 @@ void Simulation::clearScene()
         Vector3d zero(0,0,0);
         bodyInstance_ = new RigidBodyInstance(*bodyTemplate_, pos, zero, 1.0);
         cloth_->resetState();
+        fluidvx = new Mat2D(params_.gridSize, params_.gridSize);
+        fluidvy = new Mat2D(params_.gridSize, params_.gridSize);
+        fluidfx = new Mat2D(params_.gridSize, params_.gridSize);
+        fluidfy = new Mat2D(params_.gridSize, params_.gridSize);
     }
     renderLock_.unlock();
 }
@@ -179,7 +218,7 @@ VectorXd Simulation::computeGravForce() {
     return force;
 }
 
-void Simulation::stableFluidSolve(Mat3D &u, Mat3D &v, Mat3D &u0, Mat3D &v0) {
+void Simulation::stableFluidSolve(Mat2D &u, Mat2D &v, Mat2D &u0, Mat2D &v0) {
   float x, y, x0, y0, f, r, U[2], V[2], s, t;
   int i, j, i0, j0, i1, j1;
 
@@ -191,7 +230,7 @@ void Simulation::stableFluidSolve(Mat3D &u, Mat3D &v, Mat3D &u0, Mat3D &v0) {
   // u0, v0 = forces (fx, fy)
 
   // Add force grid * timestep to velocity field
-  for (i = 0 ; i < pow(n, 3); i++) {
+  for (i = 0 ; i < pow(n, 2); i++) {
       u[i] += dt*u0[i]; u0[i] = u[i];
       v[i] += dt*v0[i]; v0[i] = v[i];
   }
@@ -206,21 +245,40 @@ void Simulation::stableFluidSolve(Mat3D &u, Mat3D &v, Mat3D &u0, Mat3D &v0) {
           j0 = floor(y0); t = y0 -j0; j0 = (n+(j0%n))%n; j1 = (j0+1)%n;
 
           u[i+n*j] = (1-s)*((1-t)*u0[i0+n*j0]+t*u0[i0+n*j1])+
-            s *((1-t)*u0[i1+n*j0]+t*u0[i1+n*j1]);
+                        s *((1-t)*u0[i1+n*j0]+t*u0[i1+n*j1]);
 
           v[i+n*j] = (1-s)*((1-t)*v0[i0+n*j0]+t*v0[i0+n*j1])+
-            s *((1-t)*v0[i1+n*j0]+t*v0[i1+n*j1]);
+                        s *((1-t)*v0[i1+n*j0]+t*v0[i1+n*j1]);
       }
   }
 
+
+  /*
   // Transform to Fourier Domain
   for ( i=0 ; i<n ; i++ )
     for ( j=0 ; j<n ; j++ )
       { u0[i+(n+2)*j] = u[i+n*j]; v0[i+(n+2)*j] = v[i+n*j]; }
 
+  /*
   FFT<double> fft;
+  MatrixXcd Uf(n,n), Vf(n,n);
   for (int i = 0; i < n; i++) {
-
+      VectorXd A(n);
+      for (int j = 0; j < n; j++) {
+          A[j] = u0[i+n*j];
+      }
+      VectorXcd B(n);
+      fft.fwd(B, A);
+      Uf.block<n,1>(0,i) = B;
+  }
+  for (int i = 0; i < n; i++) {
+      VectorXd A(n);
+      for (int j = 0; j < n; j++) {
+          A[j] = v0[i+n*j];
+      }
+      VectorXcd B(n);
+      fft.fwd(B, A);
+      Vf.block<n,1>(0,i) = B;
   }
   //fft.fwd(1,n,u0); fft.fwd(1,n,v0);
 
@@ -248,7 +306,26 @@ void Simulation::stableFluidSolve(Mat3D &u, Mat3D &v, Mat3D &u0, Mat3D &v0) {
 
   // Reconvert into Cartesian
   for (int i = 0; i < n; i++) {
-
+      VectorXcd A(n);
+      for (int j = 0; j < n; j++) {
+          A[j] = u0[i+n*j];
+      }
+      VectorXd B(n);
+      fft.inv(B, A);
+      for (int j = 0; j < n; j++) {
+          u0[i+n*j] = B[j];
+      }
+  }
+  for (int i = 0; i < n; i++) {
+      VectorXcd A(n);
+      for (int j = 0; j < n; j++) {
+          A[j] = v0[i+n*j];
+      }
+      VectorXd B(n);
+      fft.inv(B, A);
+      for (int j = 0; j < n; j++) {
+          v0[i+n*j] = B[j];
+      }
   }
 
   //fft(-1,n,u0); FFT(-1,n,v0);
@@ -257,6 +334,7 @@ void Simulation::stableFluidSolve(Mat3D &u, Mat3D &v, Mat3D &u0, Mat3D &v0) {
   for ( i=0 ; i<n ; i++ )
     for ( j=0 ; j<n ; j++ )
       { u[i+n*j] = f*u0[i+(n+2)*j]; v[i+n*j] = f*v0[i+(n+2)*j ]; }
+*/
 }
 
 VectorXd Simulation::computeClothForce() {
