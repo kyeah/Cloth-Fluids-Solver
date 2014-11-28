@@ -8,7 +8,7 @@ using namespace Eigen;
 
 Cloth::Cloth() {
     mesh_ = new Mesh("resources/square.obj");
-    mesh_->translate(Vector3d(5,0,4));
+    mesh_->translate(Vector3d(5,0,6));
     int num_verts = mesh_->getNumVerts();
     verts_.resize(3*num_verts);
     velocities_.resize(3*num_verts);
@@ -193,10 +193,17 @@ void Cloth::fillHinges() {
                             if ((v1i==v2i && v1j==v2j) || (v1i==v2j && v1j==v2i)) {
                                 Vector3d pi = getVert(v1i);
                                 Vector3d pj = getVert(v1j);
+                                Vector3d pk = getVert(fverts[3-i-j]);
+                                Vector3d pl = getVert(fverts[3-i2-j2]);
                                 double restLengthSq = (pj - pi).squaredNorm();
                                 double totalArea = mesh_->getFaceArea(faceidx) + mesh_->getFaceArea(faceidx2);
+                                Vector3d n0 = (pj-pi).cross(pk-pi);
+                                Vector3d n1 = (pl-pi).cross(pj-pi);
 
-                                hinges_.push_back(Hinge(v1i, v1j, fverts[3-i-j], f2verts[3-i2-j2], faceidx, faceidx2, restLengthSq, totalArea));
+                                Vector3d n0xn1 = n0.cross(n1);
+                                double theta = 2*atan2(n0xn1.norm(), n0.norm()*n1.norm() + n0.dot(n1));
+
+                                hinges_.push_back(Hinge(v1i, v1j, fverts[3-i-j], f2verts[3-i2-j2], faceidx, faceidx2, restLengthSq, totalArea, theta));
                             }
                         }
                     }

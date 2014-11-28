@@ -38,9 +38,9 @@ void Simulation::initializeGL()
 
 void Simulation::loadRigidBodies()
 {
-    string objname("resources/2by4.obj");
+    string objname("resources/sphere.obj");
     bodyTemplate_ = new RigidBodyTemplate(objname);
-    string sdfname("resources/2by4.sdf");
+    string sdfname("resources/sphere.sdf");
     bodyTemplate_->computeSDF(sdfname.c_str());
 }
 
@@ -259,7 +259,7 @@ VectorXd Simulation::computeClothForce() {
             Vector3d n1 = (pl-pi).cross(pj-pi);
 
             Vector3d n0xn1 = n0.cross(n1);
-            double theta = 2*atan2(n0xn1.norm(), n0.norm()*n1.norm() + n0.dot(n1));
+            double theta = 2*atan2(n0xn1.norm(), n0.norm()*n1.norm() + n0.dot(n1)) - hinge.restTheta;
 
             if (theta == 0) {
                 continue;

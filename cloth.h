@@ -6,14 +6,15 @@
 
 class Hinge {
 public:
-    Hinge(int _ep1, int _ep2, int _v1, int _v2, int _face1, int _face2, double _rls, double _area) :
-        ep1(_ep1), ep2(_ep2), v1(_v1), v2(_v2), face1(_face1), face2(_face2), restLengthSq(_rls), totalArea(_area) {}
+    Hinge(int _ep1, int _ep2, int _v1, int _v2, int _face1, int _face2, double _rls, double _area, double _theta) :
+        ep1(_ep1), ep2(_ep2), v1(_v1), v2(_v2), face1(_face1), face2(_face2), restLengthSq(_rls), totalArea(_area), restTheta(_theta) {}
 
     int ep1, ep2;  // Shared edge point indices
     int v1, v2;    // Unshared vertex indices
     int face1, face2;
     double restLengthSq;
     double totalArea;
+    double restTheta;
 };
 
 class Cloth {
