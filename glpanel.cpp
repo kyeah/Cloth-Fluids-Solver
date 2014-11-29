@@ -145,6 +145,12 @@ void GLPanel::mousePressEvent(QMouseEvent *event)
     Vector2d pos;
     scaleMousePos(x,y,pos[0],pos[1]);
 
+    if (event->button() ==Qt::LeftButton) {
+        mouse_down = true;
+        last_x = pos[0];
+        last_y = pos[1];
+    }
+
     MouseAction ma = deduceAction(event);
     switch(ma)
     {
@@ -172,11 +178,18 @@ void GLPanel::mouseMoveEvent(QMouseEvent *event)
     int y = event->pos().y();
     Vector2d pos;
     scaleMousePos(x,y,pos[0],pos[1]);
+    if (mouse_down) {
+        cont_->mouseDragged(Vector2d(pos[0], pos[1]), Vector2d(last_x, last_y));
+    }
     rotator_.updateRotation(pos);
+    last_x = pos[0]; last_y = pos[1];
 }
 
 void GLPanel::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (event->button() ==Qt::LeftButton) {
+        mouse_down = false;
+    }
     MouseAction ma = deduceAction(event);
     if(ma != MA_ROTATE)
     {

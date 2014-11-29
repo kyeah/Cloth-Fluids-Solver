@@ -65,6 +65,10 @@ void Controller::mouseClicked(double, double, double, double , double , double )
 {
 }
 
+void Controller::mouseDragged(Eigen::Vector2d pos, Eigen::Vector2d lastPos) {
+    sim_->addVelocity(lastPos, pos - lastPos);
+}
+
 void Controller::accelerateBody(double vx, double vy, double vz, double wx, double wy, double wz)
 {
     sim_->accelerateBody(vx,vy,vz, wx, wy, wz);

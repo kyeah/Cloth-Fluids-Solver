@@ -30,10 +30,12 @@ public:
     void renderFloor();
     void renderObjects();
     void clearScene();
+    void addVelocity(Eigen::Vector2d pos, Eigen::Vector2d vel);
     void accelerateBody(double vx, double vy, double vz, double wx, double wy, double wz);
     Eigen::VectorXd computeGravForce();
     Eigen::VectorXd computeClothForce();
-    void stableFluidSolve(Mat2D &u, Mat2D &v, Mat2D &u0, Mat2D &v0);
+    void stableFluidSolve();
+    void set_bnd ( int N, int b, Mat2D *x );
 
 private:
     void loadFloorTexture();
@@ -48,7 +50,7 @@ private:
     RigidBodyTemplate * bodyTemplate_;
     RigidBodyInstance * bodyInstance_;
     Cloth *cloth_;
-    Mat2D *fluidvx, *fluidvy, *fluidfx, *fluidfy, *fluiddensity;
+    Mat2D *fluidvx, *fluidvy, *fluidvx_prev, *fluidvy_prev, *fluiddensity, *fluiddensity_prev;
 };
 
 #endif // SIMULATION_H

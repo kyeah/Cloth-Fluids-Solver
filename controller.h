@@ -4,6 +4,7 @@
 #include "simparameters.h"
 #include <QThread>
 #include <QTimer>
+#include <Eigen/Core>
 
 class MainWindow;
 class Simulation;
@@ -19,6 +20,7 @@ public:
     void initializeGL();
     void renderFloor();
     void renderObjects();
+    void mouseDragged(Eigen::Vector2d pos, Eigen::Vector2d lastPos);
 
 public slots:
     void reset();

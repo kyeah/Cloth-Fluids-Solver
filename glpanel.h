@@ -47,6 +47,8 @@ private:
     Rotator rotator_;
     //Zoomer zoomer_;
     Eigen::Vector4d lightPos_;
+    bool mouse_down = false;
+    double last_x, last_y;
 };
 
 #endif // GLPANEL_H
