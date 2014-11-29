@@ -122,19 +122,18 @@ void Simulation::renderObjects()
     {
         bodyInstance_->render();
         cloth_->render();
-        glPointSize(15);
+        glPointSize(10);
         glBegin(GL_POINTS);
         float maxVal = 0;
         for (int i = 0; i < params_.gridSize; i++) {
             for (int j = 0; j < params_.gridSize; j++) {
                 for (int k = 0; k < params_.gridSize; k++) {
-
-                float val = fluiddensity->valAt(i,j,k);
-                if (val > maxVal) {
-                    maxVal = val;
+                    float val = fluiddensity->valAt(i,j,k);
+                    if (val > maxVal) {
+                        maxVal = val;
+                    }
                 }
             }
-        }
         }
 
         if (maxVal == 0) maxVal = 1;
@@ -147,21 +146,10 @@ void Simulation::renderObjects()
                     val -= 255;
                 }
                 glColor4f(val, 0, val, val + 0.1);
-                glVertex3f(params_.gridSize - i, k, j + 5);
+                glVertex3f(.25*(params_.gridSize - i), .25*k, .25*(j + 5));
             }
             }
         }
-
-                /*float val = fluidvx->valAt(i,j);
-                float valy = fluidvy->valAt(i,j);
-                while (val > 255) {
-                    val -= 255;
-                }
-                while (valy > 255) {
-                    valy -= 255;
-                }
-                glColor3f(valy, 0, val);
-                glVertex3f(i, 0, j + 5);*/
         glEnd();
     }
     renderLock_.unlock();
@@ -192,9 +180,9 @@ void Simulation::takeSimulationStep()
     }*/
 
 
-    for (int i = 0; i < params_.gridSize; i++) {
-        for (int j = 0; j < params_.gridSize; j++) {
-            for (int k = 0; k < params_.gridSize; k++) {
+    for (int i = 1; i <= params_.gridSize; i++) {
+        for (int j = 1; j <= params_.gridSize; j++) {
+            for (int k = 1; k <= params_.gridSize; k++) {
 
                 fluidvy_prev->valAt(i, j, k) -= 9.8;
                 fluidvy->valAt(i, j, k) -= 9.8;
@@ -290,12 +278,12 @@ void Simulation::set_bnd ( int N, int b, Mat3D *x ) {
         x->valAt(i,N+1) = b==2 ? -x->valAt(i,N) : -2*x->valAt(i,N);
         */
         for (k=1; k <= N; k++) {
-            x->valAt(0,i,k) = b==1 ? -x->valAt(1,i,k) : x->valAt(1,i,k);
-            x->valAt(N+1,i,k) = b==1 ? -x->valAt(N,i,k) : x->valAt(N,i,k);
-            x->valAt(i,0,k) = b==2 ? -x->valAt(i,1,k) : x->valAt(i,1,k);
-            x->valAt(i,N+1,k) = b==2 ? -x->valAt(i,N,k) : x->valAt(i,N,k);
-            x->valAt(i,k,0) = b==3 ? -x->valAt(i,1,k) : x->valAt(i,k,1);
-            x->valAt(i,k,N+1) = b==3 ? -x->valAt(i,N,k) : x->valAt(i,k,N);
+            x->valAt(0,i,k) = b==1 ? -x->valAt(1,i,k) : (b == 0 ? x->valAt(1,i,k) : 2*x->valAt(1,i,k));
+            x->valAt(N+1,i,k) = b==1 ? -x->valAt(N,i,k) : (b == 0 ? x->valAt(N,i,k) : 2*x->valAt(N,i,k));
+            x->valAt(i,0,k) = b==2 ? -x->valAt(i,1,k) : (b == 0 ? x->valAt(i,1,k) : 2*x->valAt(i,1,k));
+            x->valAt(i,N+1,k) = b==2 ? -x->valAt(i,N,k) : (b == 0 ? x->valAt(i,N,k) : 2*x->valAt(i,N,k));
+            x->valAt(i,k,0) = b==3 ? -x->valAt(i,1,k) : (b == 0 ? x->valAt(i,k,1) : 2*x->valAt(i,k,1));
+            x->valAt(i,k,N+1) = b==3 ? -x->valAt(i,N,k) : (b == 0 ? x->valAt(i,k,N) : 2*x->valAt(i,k,N));
         }
     }
 
@@ -466,7 +454,7 @@ void Simulation::stableFluidSolve() {
   advect(fluiddensity, fluiddensity_prev, fluidvx, fluidvy, fluidvz);
 
   // Add force grid * timestep to velocity field
-  for (i = 0 ; i < n+2; i++) {
+  /*for (i = 0 ; i < n+2; i++) {
       for (j = 0 ; j < n+2; j++) {
           for (k = 0 ; k < n+2; k++) {
             fluidvx->valAt(i, j, k) += dt*fluidvx_prev->valAt(i, j, k);
@@ -474,7 +462,7 @@ void Simulation::stableFluidSolve() {
             fluidvz->valAt(i, j, k) += dt*fluidvz_prev->valAt(i, j, k);
           }
         }
-  }
+  }*/
 
   // Velocity Diffusion
   SWAP_MAT(fluidvx_prev, fluidvx)
