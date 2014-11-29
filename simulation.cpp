@@ -135,8 +135,8 @@ void Simulation::renderObjects()
         }
 
         if (maxVal == 0) maxVal = 1;
-        for (int i = 0; i < params_.gridSize; i++) {
-            for (int j = 0; j < params_.gridSize; j++) {
+        for (int i = 1; i <= params_.gridSize; i++) {
+            for (int j = 1; j <= params_.gridSize; j++) {
                 float val = (fluiddensity->valAt(i,j) / maxVal) * 255;
                 while (val > 255) {
                     val -= 255;
@@ -186,8 +186,8 @@ void Simulation::takeSimulationStep()
     }*/
 
 
-    for (int i = 0; i < params_.gridSize; i++) {
-        for (int j = 0; j < params_.gridSize; j++) {
+    for (int i = 1; i <= params_.gridSize; i++) {
+        for (int j = 1; j <= params_.gridSize; j++) {
             fluidvy_prev->valAt(i, j) -= .98;
             fluidvy->valAt(i, j) -= .98;
             //fluiddensity_prev->valAt(i, j) = fluiddensity->valAt(i, j);
@@ -266,10 +266,10 @@ void Simulation::set_bnd ( int N, int b, Mat2D *x ) {
     int i;
 
     for ( i=1 ; i<=N ; i++ ) {
-        x->valAt(0,i) = (b==1 ? -2*x->valAt(1,i) : -2*x->valAt(1,i));
-        x->valAt(N+1,i) = b==1 ? -2*x->valAt(N,i) : -2*x->valAt(N,i);
-        x->valAt(i,0 ) = b==2 ? -x->valAt(i,1) : -2*x->valAt(i,1);
-        x->valAt(i,N+1) = b==2 ? -x->valAt(i,N) : -2*x->valAt(i,N);
+        x->valAt(0,i) = b==1 ? -2*x->valAt(1,i) : (b == 0 ? -2*x->valAt(1,i) : -2*x->valAt(1,i));
+        x->valAt(N+1,i) = b==1 ? -2*x->valAt(N,i) : (b == 0 ? -2*x->valAt(N,i) : -2 * x->valAt(N,i));
+        x->valAt(i,0 ) = b==2 ? -x->valAt(i,1) : (b == 0 ? -2*x->valAt(i,1) : -2*x->valAt(i,1));
+        x->valAt(i,N+1) = b==2 ? -x->valAt(i,N) : (b == 0 ? -2*x->valAt(i,N) : -2*x->valAt(i,N));
     }
 
     x->valAt(0 ,0 ) = 0.5*(x->valAt(1,0 )+x->valAt(0 ,1));
