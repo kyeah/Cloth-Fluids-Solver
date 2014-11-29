@@ -214,7 +214,7 @@ void Simulation::addVelocity(Eigen::Vector2d pos, Eigen::Vector2d vel) {
     }
 
     fluiddensity->valAt(px, py) += .001;
-    fluiddensity_prev->valAt(px, py) += .001;
+    //fluiddensity_prev->valAt(px, py) += .001;
 
     //fluidvx->valAt(px, py) += vel[0];
     //fluidvy->valAt(px, py) += vel[1];
@@ -266,9 +266,10 @@ void Simulation::set_bnd ( int N, int b, Mat2D *x ) {
     int i;
 
     for ( i=1 ; i<=N ; i++ ) {
-        x->valAt(0,i) = (b==1 ? -x->valAt(1,i) : -2*x->valAt(1,i));
-        x->valAt(N+1,i) = b==1 ? -x->valAt(N,i) : -2*x->valAt(N,i);
-        x->valAt(i,0 ) = b==2 ? -x->valAt(i,1) : -2*x->valAt(i,1);  x->valAt(i,N+1) = b==2 ? -x->valAt(i,N) : -2*x->valAt(i,N);
+        x->valAt(0,i) = (b==1 ? -2*x->valAt(1,i) : -2*x->valAt(1,i));
+        x->valAt(N+1,i) = b==1 ? -2*x->valAt(N,i) : -2*x->valAt(N,i);
+        x->valAt(i,0 ) = b==2 ? -x->valAt(i,1) : -2*x->valAt(i,1);
+        x->valAt(i,N+1) = b==2 ? -x->valAt(i,N) : -2*x->valAt(i,N);
     }
 
     x->valAt(0 ,0 ) = 0.5*(x->valAt(1,0 )+x->valAt(0 ,1));

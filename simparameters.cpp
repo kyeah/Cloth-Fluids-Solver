@@ -15,6 +15,6 @@ SimParameters::SimParameters()
     dampingCoeff = 0.1;
     cor = 0.3;
 
-    gridSize = 30;
+    gridSize = 60;
     viscosity = .00028;
 }
