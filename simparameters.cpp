@@ -6,7 +6,7 @@ SimParameters::SimParameters()
     timeStep = 0.0001;
 
     activeForces = F_GRAVITY | F_STRETCHING | F_DAMPING | F_BENDING | F_CONTACT;
-    gravityG = -9.8;
+    gravityG = -1;
     penaltyStiffness = 100000;
     pinCorner = false;
 
@@ -15,6 +15,6 @@ SimParameters::SimParameters()
     dampingCoeff = 0.1;
     cor = 0.3;
 
-    gridSize = 30;
+    gridSize = 120;
     viscosity = .00028;
 }

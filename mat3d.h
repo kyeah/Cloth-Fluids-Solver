@@ -16,7 +16,7 @@ public:
     const double& operator[](unsigned int i)const{ return mat_[i];}
 
     double& valAt(int i, int j, int k) const {
-        return mat_[cols*depth*i + depth*j + k];
+        return mat_[rows*i + cols*j + k];
     }
 
     double *mat_;
@@ -38,7 +38,7 @@ public:
     const double& operator[](unsigned int i)const{ return mat_[i];}
 
     double& valAt(int i, int j) const {
-        return mat_[cols*i + j];
+        return mat_[rows*i + j];
     }
 
     double *mat_;
