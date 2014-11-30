@@ -282,16 +282,17 @@ void Simulation::set_bnd ( int N, int b, Mat3D *x ) {
         x->valAt(i,N+1) = b==2 ? -x->valAt(i,N) : -2*x->valAt(i,N);
         */
         for (k=1; k <= N; k++) {
-            x->valAt(0,i,k) = b==1 ? -2*x->valAt(1,i,k) : (b == 0 ? x->valAt(1,i,k) : 6*x->valAt(1,i,k));
-            x->valAt(N+1,i,k) = b==1 ? -2*x->valAt(N,i,k) : (b == 0 ? x->valAt(N,i,k) : 6*x->valAt(N,i,k));
-            x->valAt(i,k,0) = b==3 ? -2*x->valAt(i,1,k) : (b == 0 ? x->valAt(i,k,1) : 6*x->valAt(i,k,1));
-            x->valAt(i,k,N+1) = b==3 ? -2*x->valAt(i,N,k) : (b == 0 ? x->valAt(i,k,N) : 6*x->valAt(i,k,N));
-            x->valAt(i,0,k) = b==2 ? -2*x->valAt(i,1,k) : (b == 0 ? x->valAt(i,1,k) : 6*x->valAt(i,1,k));
-            x->valAt(i,N+1,k) = b==2 ? -2*x->valAt(i,N,k) : (b == 0 ? x->valAt(i,N,k) : 6*x->valAt(i,N,k));
+            x->valAt(0,i,k) = b==1 ? -x->valAt(1,i,k) : x->valAt(1,i,k);
+            x->valAt(N+1,i,k) = b==1 ? -x->valAt(N,i,k) : x->valAt(N,i,k);
+            x->valAt(i,k,0) = b==3 ? -x->valAt(i,1,k) : x->valAt(i,k,1);
+            x->valAt(i,k,N+1) = b==3 ? -x->valAt(i,N,k) : x->valAt(i,k,N);
+            x->valAt(i,0,k) = b==2 ? -x->valAt(i,1,k) : x->valAt(i,1,k);
+            x->valAt(i,N+1,k) = b==2 ? -x->valAt(i,N,k) : x->valAt(i,N,k);
+            /*
             x->valAt(i,0,k) += b!=0 ? 0 : x->valAt(i+1,1,k) + x->valAt(i+1,1,k+1) + x->valAt(i,1,k+1) + x->valAt(i-1,1,k) + x->valAt(i-1,1,k+1) + x->valAt(i-1,1,k-1) + x->valAt(i,1,k-1) + x->valAt(i+1,1,k-1);
             x->valAt(i,N+1,k) = b!=0 ? 0 : x->valAt(i+1,N,k) + x->valAt(i+1,N,k+1) + x->valAt(i,N,k+1) + x->valAt(i-1,N,k) + x->valAt(i-1,N,k+1) + x->valAt(i-1,N,k-1) + x->valAt(i,N,k-1) + x->valAt(i+1,N,k-1);
             x->valAt(i,0,k) /= b!=0 ? 1 : 9;
-            x->valAt(i,N+1,k) /= b!=0 ? 1 : 9;
+            x->valAt(i,N+1,k) /= b!=0 ? 1 : 9;*/
         }
     }
 
@@ -453,6 +454,9 @@ void Simulation::stableFluidSolve() {
   diffuse(fluidvx, fluidvx_prev);
   diffuse(fluidvy, fluidvy_prev);
   diffuse(fluidvz, fluidvz_prev);
+  set_bnd ( n, 1, fluidvx );
+  set_bnd ( n, 2, fluidvy );
+  set_bnd ( n, 3, fluidvz );
 
   // project
   project(fluidvx, fluidvy, fluidvz, fluidvx_prev, fluidvy_prev, fluidvz_prev);
@@ -464,7 +468,12 @@ void Simulation::stableFluidSolve() {
   advect(fluidvx, fluidvx_prev, fluidvx_prev, fluidvy_prev, fluidvz_prev);
   advect(fluidvy, fluidvy_prev, fluidvx_prev, fluidvy_prev, fluidvz_prev);
   advect(fluidvz, fluidvz_prev, fluidvx_prev, fluidvy_prev, fluidvz_prev);
-
+  set_bnd ( n, 1, fluidvx );
+  set_bnd ( n, 2, fluidvy );
+  set_bnd ( n, 3, fluidvz );
+  //set_bnd ( n, 0, fluidvx_prev );
+  //set_bnd ( n, 0, fluidvy_prev );
+  //set_bnd ( n, 0, fluidvz_prev );
   // project
   project(fluidvx, fluidvy, fluidvz, fluidvx_prev, fluidvy_prev, fluidvz_prev);
 }
