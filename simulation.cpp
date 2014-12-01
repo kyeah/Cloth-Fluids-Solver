@@ -371,31 +371,33 @@ void Simulation::stableFluidSolve() {
 
   // project
   float h;
+  Mat2D mat(fluidvx->rows, fluidvx->cols);
+  Mat2D mat2(fluidvx->rows, fluidvx->cols);
 
   h = 1.0/n;
   for ( i=1 ; i<=n ; i++ ) {
    for ( j=1 ; j<=n ; j++ ) {
-   fluidvy_prev->valAt(i,j) = -0.5*h*(fluidvx->valAt(i+1,j)-fluidvx->valAt(i-1,j)+
+   mat.valAt(i,j) = -0.5*h*(fluidvx->valAt(i+1,j)-fluidvx->valAt(i-1,j)+
                                       fluidvy->valAt(i,j+1)-fluidvy->valAt(i,j-1));
-   fluidvx_prev->valAt(i,j) = 0;
+   mat2.valAt(i,j) = 0;
   }
   }
-  set_bnd ( n, 2, fluidvy_prev ); set_bnd ( n, 1, fluidvx_prev );
+  set_bnd ( n, 2, &mat ); set_bnd ( n, 1, &mat2 );
 
   for ( k=0 ; k<20 ; k++ ) {
    for ( i=1 ; i<=n ; i++ ) {
    for ( j=1 ; j<=n ; j++ ) {
-   fluidvx_prev->valAt(i,j) = (fluidvy_prev->valAt(i,j) + fluidvx_prev->valAt(i-1,j) + fluidvx_prev->valAt(i+1,j) +
-                                                   fluidvx_prev->valAt(i,j-1) + fluidvx_prev->valAt(i,j+1))/4;
+   mat2.valAt(i,j) = (mat.valAt(i,j) + mat2.valAt(i-1,j) + mat2.valAt(i+1,j) +
+                                                   mat2.valAt(i,j-1) + mat2.valAt(i,j+1))/4;
   }
    }
-   set_bnd ( n, 1, fluidvx_prev );
+   set_bnd ( n, 1, &mat2 );
    }
 
    for ( i=1 ; i<=n ; i++ ) {
    for ( j=1 ; j<=n ; j++ ) {
-   fluidvx->valAt(i,j) -= 0.5*(fluidvx_prev->valAt(i+1,j) - fluidvx_prev->valAt(i-1,j))/h;
-   fluidvy->valAt(i,j) -= 0.5*(fluidvx_prev->valAt(i,j+1) - fluidvx_prev->valAt(i,j-1))/h;
+   fluidvx->valAt(i,j) -= 0.5*(mat2.valAt(i+1,j) - mat2.valAt(i-1,j))/h;
+   fluidvy->valAt(i,j) -= 0.5*(mat2.valAt(i,j+1) - mat2.valAt(i,j-1))/h;
    }
    }
    set_bnd ( n, 1, fluidvx ); set_bnd ( n, 2, fluidvy );
@@ -443,27 +445,27 @@ void Simulation::stableFluidSolve() {
     h = 1.0/n;
     for ( i=1 ; i<=n ; i++ ) {
      for ( j=1 ; j<=n ; j++ ) {
-     fluidvy_prev->valAt(i,j) = -0.5*h*(fluidvx->valAt(i+1,j)-fluidvx->valAt(i-1,j)+
+     mat.valAt(i,j) = -0.5*h*(fluidvx->valAt(i+1,j)-fluidvx->valAt(i-1,j)+
                                         fluidvy->valAt(i,j+1)-fluidvy->valAt(i,j-1));
-     fluidvx_prev->valAt(i,j) = 0;
+     mat2.valAt(i,j) = 0;
     }
     }
-    set_bnd ( n, 2, fluidvy_prev ); set_bnd ( n, 1, fluidvx_prev );
+    set_bnd ( n, 2, &mat ); set_bnd ( n, 1, &mat2 );
 
     for ( k=0 ; k<20 ; k++ ) {
      for ( i=1 ; i<=n ; i++ ) {
      for ( j=1 ; j<=n ; j++ ) {
-     fluidvx_prev->valAt(i,j) = (fluidvy_prev->valAt(i,j) + fluidvx_prev->valAt(i-1,j) + fluidvx_prev->valAt(i+1,j) +
-                                                     fluidvx_prev->valAt(i,j-1) + fluidvx_prev->valAt(i,j+1))/4;
+     mat2.valAt(i,j) = (mat.valAt(i,j) + mat2.valAt(i-1,j) + mat2.valAt(i+1,j) +
+                                                     mat2.valAt(i,j-1) + mat2.valAt(i,j+1))/4;
     }
      }
-     set_bnd ( n, 1, fluidvx_prev );
+     set_bnd ( n, 1, &mat2 );
      }
 
      for ( i=1 ; i<=n ; i++ ) {
      for ( j=1 ; j<=n ; j++ ) {
-     fluidvx->valAt(i,j) -= 0.5*(fluidvx_prev->valAt(i+1,j) - fluidvx_prev->valAt(i-1,j))/h;
-     fluidvy->valAt(i,j) -= 0.5*(fluidvx_prev->valAt(i,j+1) - fluidvx_prev->valAt(i,j-1))/h;
+     fluidvx->valAt(i,j) -= 0.5*(mat2.valAt(i+1,j) - mat2.valAt(i-1,j))/h;
+     fluidvy->valAt(i,j) -= 0.5*(mat2.valAt(i,j+1) - mat2.valAt(i,j-1))/h;
      }
      }
      set_bnd ( n, 1, fluidvx ); set_bnd ( n, 2, fluidvy );
