@@ -284,10 +284,10 @@ void Simulation::set_bnd ( int N, int b, Mat3D *x ) {
         for (k=1; k <= N; k++) {
             x->valAt(0,i,k) = b==1 ? -x->valAt(1,i,k) : x->valAt(1,i,k);
             x->valAt(N+1,i,k) = b==1 ? -x->valAt(N,i,k) : x->valAt(N,i,k);
-            x->valAt(i,k,0) = b==3 ? -x->valAt(i,1,k) : x->valAt(i,k,1);
-            x->valAt(i,k,N+1) = b==3 ? -x->valAt(i,N,k) : x->valAt(i,k,N);
             x->valAt(i,0,k) = b==2 ? -x->valAt(i,1,k) : x->valAt(i,1,k);
             x->valAt(i,N+1,k) = b==2 ? -x->valAt(i,N,k) : x->valAt(i,N,k);
+            x->valAt(i,k,0) = b==3 ? -x->valAt(i,1,k) : x->valAt(i,k,1);
+            x->valAt(i,k,N+1) = b==3 ? -x->valAt(i,N,k) : x->valAt(i,k,N);
             /*
             x->valAt(i,0,k) += b!=0 ? 0 : x->valAt(i+1,1,k) + x->valAt(i+1,1,k+1) + x->valAt(i,1,k+1) + x->valAt(i-1,1,k) + x->valAt(i-1,1,k+1) + x->valAt(i-1,1,k-1) + x->valAt(i,1,k-1) + x->valAt(i+1,1,k-1);
             x->valAt(i,N+1,k) = b!=0 ? 0 : x->valAt(i+1,N,k) + x->valAt(i+1,N,k+1) + x->valAt(i,N,k+1) + x->valAt(i-1,N,k) + x->valAt(i-1,N,k+1) + x->valAt(i-1,N,k-1) + x->valAt(i,N,k-1) + x->valAt(i+1,N,k-1);
@@ -374,29 +374,32 @@ void Simulation::project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz, Mat3D *
 
     h = 1.0/n;
 
+    Mat3D mat(fluidvy->rows, fluidvy->cols, fluidvy->depth);
+    Mat3D mat2(fluidvx->rows, fluidvx->cols, fluidvx->depth);
+
     for ( i=1 ; i<=n ; i++ ) {
         for ( j=1 ; j<=n ; j++ ) {
             for ( k=1 ; k<=n ; k++ ) {
                 // Find total flow through pt i,j,k
-                fluidvy_prev->valAt(i,j,k) = -0.333*h*(fluidvx->valAt(i+1,j,k)-fluidvx->valAt(i-1,j,k)+
+                mat.valAt(i,j,k) = -0.333*h*(fluidvx->valAt(i+1,j,k)-fluidvx->valAt(i-1,j,k)+
                                                        fluidvy->valAt(i,j+1,k)-fluidvy->valAt(i,j-1,k)+
                                                        fluidvz->valAt(i,j,k+1)-fluidvz->valAt(i,j,k-1));
-                fluidvx_prev->valAt(i,j,k) = 0;
-                fluidvz_prev->valAt(i,j,k) = 0;
+                mat2.valAt(i,j,k) = 0;
+                //matz->valAt(i,j,k) = 0;
             }
         }
     }
 
-    set_bnd ( n, 0, fluidvy_prev ); set_bnd ( n, 0, fluidvx_prev ); set_bnd ( n, 0, fluidvz_prev);
+    set_bnd ( n, 0, &mat ); set_bnd ( n, 0, &mat2 );// set_bnd ( n, 0, fluidvz_prev);
 
     for ( iters=0 ; iters<10 ; iters++ ) {
         for ( i=1 ; i<=n ; i++ ) {
             for ( j=1 ; j<=n ; j++ ) {
                 for ( k=1 ; k<=n ; k++ ) {
-                    fluidvx_prev->valAt(i,j,k) = (fluidvy_prev->valAt(i,j,k) +
-                                                fluidvx_prev->valAt(i-1,j,k) + fluidvx_prev->valAt(i+1,j,k) +
-                                                fluidvx_prev->valAt(i,j-1,k) + fluidvx_prev->valAt(i,j+1,k) +
-                                                fluidvx_prev->valAt(i,j,k-1) + fluidvx_prev->valAt(i,j,k+1))/6;
+                    mat2.valAt(i,j,k) = (mat.valAt(i,j,k) +
+                                                mat2.valAt(i-1,j,k) + mat2.valAt(i+1,j,k) +
+                                                mat2.valAt(i,j-1,k) + mat2.valAt(i,j+1,k) +
+                                                mat2.valAt(i,j,k-1) + mat2.valAt(i,j,k+1))/6;
 /*
                     fluidvz_prev->valAt(i,j,k) = (fluidvy_prev->valAt(i,j) +
                                                 fluidvz_prev->valAt(i-1,j) + fluidvz_prev->valAt(i+1,j) +
@@ -405,15 +408,15 @@ void Simulation::project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz, Mat3D *
                 }
             }
         }
-        set_bnd ( n, 0, fluidvx_prev );
+        set_bnd ( n, 0, &mat2 );
      }
 
      for ( i=1 ; i<=n ; i++ ) {
         for ( j=1 ; j<=n ; j++ ) {
             for ( k=1 ; k<=n ; k++ ) {
-                fluidvx->valAt(i,j,k) -= 0.5*(fluidvx_prev->valAt(i+1,j,k) - fluidvx_prev->valAt(i-1,j,k))/h;
-                fluidvy->valAt(i,j,k) -= 0.5*(fluidvx_prev->valAt(i,j+1,k) - fluidvx_prev->valAt(i,j-1,k))/h;
-                fluidvz->valAt(i,j,k) -= 0.5*(fluidvx_prev->valAt(i,j,k+1) - fluidvx_prev->valAt(i,j,k-1))/h;
+                fluidvx->valAt(i,j,k) -= 0.5*(mat2.valAt(i+1,j,k) - mat2.valAt(i-1,j,k))/h;
+                fluidvy->valAt(i,j,k) -= 0.5*(mat2.valAt(i,j+1,k) - mat2.valAt(i,j-1,k))/h;
+                fluidvz->valAt(i,j,k) -= 0.5*(mat2.valAt(i,j,k+1) - mat2.valAt(i,j,k-1))/h;
             }
         }
      }
@@ -471,11 +474,13 @@ void Simulation::stableFluidSolve() {
   set_bnd ( n, 1, fluidvx );
   set_bnd ( n, 2, fluidvy );
   set_bnd ( n, 3, fluidvz );
+
   //set_bnd ( n, 0, fluidvx_prev );
   //set_bnd ( n, 0, fluidvy_prev );
   //set_bnd ( n, 0, fluidvz_prev );
   // project
   project(fluidvx, fluidvy, fluidvz, fluidvx_prev, fluidvy_prev, fluidvz_prev);
+
 }
 
 VectorXd Simulation::computeClothForce() {
