@@ -287,7 +287,7 @@ void Simulation::set_bnd ( int N, int b, Mat3D *x ) {
             x->valAt(i,0,k) = b==2 ? -x->valAt(i,1,k) : x->valAt(i,1,k);
             x->valAt(i,N+1,k) = b==2 ? -x->valAt(i,N,k) : x->valAt(i,N,k);
             x->valAt(i,k,0) = b==3 ? -x->valAt(i,1,k) : x->valAt(i,k,1);
-            x->valAt(i,k,N+1) = b==3 ? -x->valAt(i,N,k) : x->valAt(i,k,N);
+            x->valAt(i,k,N+1) = b==3 ? -x->valAt(i,k,N) : x->valAt(i,k,N);
             /*
             x->valAt(i,0,k) += b!=0 ? 0 : x->valAt(i+1,1,k) + x->valAt(i+1,1,k+1) + x->valAt(i,1,k+1) + x->valAt(i-1,1,k) + x->valAt(i-1,1,k+1) + x->valAt(i-1,1,k-1) + x->valAt(i,1,k-1) + x->valAt(i+1,1,k-1);
             x->valAt(i,N+1,k) = b!=0 ? 0 : x->valAt(i+1,N,k) + x->valAt(i+1,N,k+1) + x->valAt(i,N,k+1) + x->valAt(i-1,N,k) + x->valAt(i-1,N,k+1) + x->valAt(i-1,N,k-1) + x->valAt(i,N,k-1) + x->valAt(i+1,N,k-1);
@@ -385,12 +385,11 @@ void Simulation::project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz, Mat3D *
                                                        fluidvy->valAt(i,j+1,k)-fluidvy->valAt(i,j-1,k)+
                                                        fluidvz->valAt(i,j,k+1)-fluidvz->valAt(i,j,k-1));
                 mat2.valAt(i,j,k) = 0;
-                //matz->valAt(i,j,k) = 0;
             }
         }
     }
 
-    set_bnd ( n, 0, &mat ); set_bnd ( n, 0, &mat2 );// set_bnd ( n, 0, fluidvz_prev);
+    set_bnd ( n, 0, &mat );
 
     for ( iters=0 ; iters<10 ; iters++ ) {
         for ( i=1 ; i<=n ; i++ ) {
@@ -400,11 +399,6 @@ void Simulation::project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz, Mat3D *
                                                 mat2.valAt(i-1,j,k) + mat2.valAt(i+1,j,k) +
                                                 mat2.valAt(i,j-1,k) + mat2.valAt(i,j+1,k) +
                                                 mat2.valAt(i,j,k-1) + mat2.valAt(i,j,k+1))/6;
-/*
-                    fluidvz_prev->valAt(i,j,k) = (fluidvy_prev->valAt(i,j) +
-                                                fluidvz_prev->valAt(i-1,j) + fluidvz_prev->valAt(i+1,j) +
-                                                fluidvz_prev->valAt(i,j-1) + fluidvz_prev->valAt(i,j+1) +
-                                                fluidvz_prev->valAt(i,j,k-1) + fluidvz_prev->valAt(i,j,k+1))/6;*/
                 }
             }
         }

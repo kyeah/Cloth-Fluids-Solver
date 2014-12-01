@@ -97,6 +97,8 @@
               <string>Start Simulation</string>
              </property>
             </widget>
+            <zorder>startSimulationButton</zorder>
+            <zorder>activeForcesBox</zorder>
            </widget>
           </item>
           <item>
@@ -372,7 +374,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>25</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

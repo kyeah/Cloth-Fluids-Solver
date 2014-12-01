@@ -127,6 +127,7 @@ public:
         startSimulationButton = new QPushButton(SimulationBox);
         startSimulationButton->setObjectName(QString::fromUtf8("startSimulationButton"));
         startSimulationButton->setGeometry(QRect(10, 40, 181, 27));
+        startSimulationButton->raise();
 
         horizontalLayout->addWidget(SimulationBox);
 
@@ -207,7 +208,7 @@ public:
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 1200, 25));
+        menuBar->setGeometry(QRect(0, 0, 1200, 27));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         menuScene = new QMenu(menuBar);
