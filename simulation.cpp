@@ -5,13 +5,8 @@
 #include <Eigen/Geometry>
 #include <QDebug>
 #include "SOIL.h"
-#include "rigidbodytemplate.h"
-#include "rigidbodyinstance.h"
 #include "vectormath.h"
 #include <Eigen/Dense>
-#include "mesh.h"
-#include "signeddistancefield.h"
-#include <unsupported/Eigen/FFT>
 
 // Quick macro to swap two matrix pointers
 #define SWAP_MAT(A,B) {Mat3D *tmp=A;A=B;B=tmp;}
@@ -23,30 +18,25 @@ using namespace std;
 
 Simulation::Simulation(const SimParameters &params) : params_(params), time_(0), floorTex_(0)
 {
-    loadRigidBodies();
-    cloth_ = new Cloth();
-    bodyInstance_ = NULL;
     fluidvx = fluidvy = fluidvz = fluidvx_prev = fluidvy_prev = fluidvz_prev = fluiddensity = fluiddensity_prev = NULL;
     clearScene();
 }
 
 Simulation::~Simulation()
 {
-    delete bodyInstance_;
-    delete bodyTemplate_;
+    delete fluidvx;
+    delete fluidvy;
+    delete fluidvz;
+    delete fluidvx_prev;
+    delete fluidvy_prev;
+    delete fluidvz_prev;
+    delete fluiddensity;
+    delete fluiddensity_prev;
 }
 
 void Simulation::initializeGL()
 {
     loadFloorTexture();
-}
-
-void Simulation::loadRigidBodies()
-{
-    string objname("resources/2by4.obj");
-    bodyTemplate_ = new RigidBodyTemplate(objname);
-    string sdfname("resources/2by4.sdf");
-    bodyTemplate_->computeSDF(sdfname.c_str());
 }
 
 void Simulation::loadFloorTexture()
@@ -121,8 +111,6 @@ void Simulation::renderObjects()
 {
     renderLock_.lock();
     {
-        bodyInstance_->render();
-        cloth_->render();
         float scale = 0.5;
         glPointSize(40*(1/scale));
         int scaledGridSize = params_.gridSize * scale;
@@ -165,45 +153,13 @@ void Simulation::renderObjects()
 void Simulation::takeSimulationStep()
 {
     time_ += params_.timeStep;
-
-    /*
-    bodyInstance_->c += params_.timeStep*bodyInstance_->cvel;
-    bodyInstance_->theta = VectorMath::axisAngle(VectorMath::rotationMatrix(params_.timeStep*bodyInstance_->w)*VectorMath::rotationMatrix(bodyInstance_->theta));
-
-    cloth_->verts_ += params_.timeStep * cloth_->velocities_;
-
-    VectorXd gravForce = computeGravForce();
-    VectorXd clothForce = computeClothForce();
-    VectorXd dampingForce = -params_.dampingCoeff * cloth_->velocities_;
-
-    if (!(params_.activeForces & SimParameters::F_DAMPING)) {
-        dampingForce.setZero();
-    }
-
-    cloth_->velocities_ += params_.timeStep * (gravForce + dampingForce + cloth_->massInv_ * clothForce);
-
-    if (params_.pinCorner) {
-        cloth_->velocities_.segment<3>(0) = Vector3d(0,0,0);
-    }*/
-
-    //set_bnd ( params_.gridSize, 0, fluidvy );
-    //set_bnd ( params_.gridSize, 0, fluidvy_prev );
-
-    //fluiddensity->valAt(params_.gridSize / 2, params_.gridSize / 2) += 1;
-
-
-    //for (int i = 0; i < params_.gridSize; i++) {
-    //    fluidvy_prev->valAt(0, i) = -2*fluidvy_prev->valAt(1, i);
-   // }
-
-    // Source
     stableFluidSolve();
 }
 
 void Simulation::addVelocity(Eigen::Vector2d pos, Eigen::Vector2d vel) {
     int px = floor((pos[0] + 1)*params_.gridSize / 2);
     int py = floor((pos[1] + 1)*params_.gridSize / 2);
-    vel = 10 * (vel / vel.norm());
+    vel = 100 * (vel / vel.norm());
 
     if (px < 0 || px >= params_.gridSize - 1 || py < 0 || py >= params_.gridSize - 1) {
         return;
@@ -232,7 +188,6 @@ void Simulation::clearScene()
 {
     renderLock_.lock();
     {
-        delete bodyInstance_;
         delete fluidvx;
         delete fluidvy;
         delete fluidvz;
@@ -241,10 +196,6 @@ void Simulation::clearScene()
         delete fluidvz_prev;
         delete fluiddensity;
         delete fluiddensity_prev;
-        Vector3d pos(5, 0, 3);
-        Vector3d zero(0,0,0);
-        bodyInstance_ = new RigidBodyInstance(*bodyTemplate_, pos, zero, 1.0);
-        cloth_->resetState();
         fluidvx = new Mat3D(params_.gridSize+2, params_.gridSize+2, params_.gridSize+2);
         fluidvy = new Mat3D(params_.gridSize+2, params_.gridSize+2, params_.gridSize+2);
         fluidvz = new Mat3D(params_.gridSize+2, params_.gridSize+2, params_.gridSize+2);
@@ -255,25 +206,6 @@ void Simulation::clearScene()
         fluiddensity_prev = new Mat3D(params_.gridSize+2, params_.gridSize+2, params_.gridSize+2);
     }
     renderLock_.unlock();
-}
-
-void Simulation::accelerateBody(double vx, double vy, double vz, double wx, double wy, double wz)
-{
-    bodyInstance_->cvel += Vector3d(vx,vy,vz);
-    bodyInstance_->w += Vector3d(wx,wy,wz);
-}
-
-VectorXd Simulation::computeGravForce() {
-    VectorXd vertPos = cloth_->verts_;
-    VectorXd force(vertPos.rows());
-    force.setZero();
-
-    if (params_.activeForces & SimParameters::F_GRAVITY) {
-        for (int i = 2; i < force.rows(); i+=3) {
-            force[i] += params_.gravityG;
-        }
-    }
-    return force;
 }
 
 void Simulation::bound_mat ( int N, int b, Mat3D *x ) {
@@ -491,138 +423,4 @@ void Simulation::stableFluidSolve() {
   // Post-Projection
   project(fluidvx, fluidvy, fluidvz, fluidvx_prev, fluidvy_prev, fluidvz_prev);
 
-}
-
-VectorXd Simulation::computeClothForce() {
-    VectorXd vertPos = cloth_->verts_;
-    VectorXd force(vertPos.rows());
-    force.setZero();
-
-    // Stretching Force
-    // DqV = 2Ev.transpose() * DqEv
-    // DqEv = DdgEvDqd
-    // DdgEv = 0.5[A]Dqdgv
-    // Dqdgv = Dq(gv - gvtemplate) = Dqgv = DevgvDqev = [C]dqev
-    // dqev = [D]dq
-    // DqV = 2Ev.transpose() * 0.5[A][C][D]dqdqd
-    // F = -(DqV).transpose() = -[D.t][C.t][A.t]Ev where Ev = 9x1
-
-    Matrix3d I = Matrix3d::Identity();
-
-    if (params_.activeForces & SimParameters::F_STRETCHING) {
-        MatrixXd D(6,9);
-        D.setZero();
-        D.block<3,3>(0,0) = -I;
-        D.block<3,3>(0,3) = I;
-        D.block<3,3>(3,0) = -I;
-        D.block<3,3>(3,6) = I;
-
-        for (int i = 0; i < cloth_->mesh_->getNumFaces(); i++) {
-            Vector3i fverts = cloth_->mesh_->getFace(i);
-            Vector3d pts[3];
-            for(int j=0; j<3; j++)
-                pts[j] = cloth_->verts_.segment<3>(3*fverts[j]);
-
-            Vector3d e1 = pts[1] - pts[0];
-            Vector3d e2 = pts[2] - pts[0];
-            MatrixXd bmat = cloth_->bmats_[i];
-
-            Matrix2d g;
-            g(0,0) = e1.dot(e1);
-            g(0,1) = e1.dot(e2);
-            g(1,0) = g(0,1);
-            g(1,1) = e2.dot(e2);
-
-            Matrix2d dg = g - cloth_->gmats_[i];
-
-            MatrixXd C(4,6);
-            C.setZero();
-            C.block<1,3>(0,0) = 2*e1.transpose();
-            C.block<1,3>(1,0) = e2.transpose();
-            C.block<1,3>(1,3) = e1.transpose();
-            C.block<1,3>(2,0) = e2.transpose();
-            C.block<1,3>(2,3) = e1.transpose();
-            C.block<1,3>(3,3) = 2*e2.transpose();
-
-            Matrix3d epsilon = bmat.transpose() * dg * bmat;
-            VectorXd epsilonv(9,1);
-            epsilonv.segment<3>(0) = epsilon.block<1,3>(0,0).transpose();
-            epsilonv.segment<3>(3) = epsilon.block<1,3>(1,0).transpose();
-            epsilonv.segment<3>(6) = epsilon.block<1,3>(2,0).transpose();
-            epsilonv /= 2.0;
-
-            MatrixXd A = cloth_->amats_[i];
-
-            VectorXd df = -D.transpose() * (C.transpose() * (A.transpose() * epsilonv));
-            df *= cloth_->mesh_->getFaceArea(i) * params_.stretchingK;
-
-            for (int j=0; j < 3; j++) {
-                force.segment<3>(3*fverts[j]) += df.segment<3>(3*j);
-            }
-        }
-    }
-
-    if (params_.activeForces & SimParameters::F_BENDING) {
-        for (int i = 0; i < cloth_->hinges_.size(); i++) {
-            Hinge hinge = cloth_->hinges_[i];
-            Vector3d pi = cloth_->getVert(hinge.ep1);
-            Vector3d pj = cloth_->getVert(hinge.ep2);
-            Vector3d pk = cloth_->getVert(hinge.v1);
-            Vector3d pl = cloth_->getVert(hinge.v2);
-
-            Vector3d n0 = (pj-pi).cross(pk-pi);
-            Vector3d n1 = (pl-pi).cross(pj-pi);
-
-            Vector3d n0xn1 = n0.cross(n1);
-            double theta = 2*atan2(n0xn1.norm(), n0.norm()*n1.norm() + n0.dot(n1));
-
-            if (theta == 0) {
-                continue;
-            }
-
-            double rest_coeff = params_.bendingK * hinge.restLengthSq * 2 * theta / hinge.totalArea;
-
-            Vector3d Dn1_coeff = (n0xn1/n0xn1.norm()).cross(n1/n1.squaredNorm());
-            Vector3d Dn0_coeff = (n0xn1/n0xn1.norm()).cross(n0/n0.squaredNorm());
-
-            Matrix3d Dn0_i = VectorMath::crossProductMatrix(pk-pj);
-            Matrix3d Dn0_j = VectorMath::crossProductMatrix(pi-pk);
-            Matrix3d Dn0_k = VectorMath::crossProductMatrix(pj-pi);
-
-            Matrix3d Dn1_i = VectorMath::crossProductMatrix(pj-pl);
-            Matrix3d Dn1_j = VectorMath::crossProductMatrix(pl-pi);
-            Matrix3d Dn1_l = VectorMath::crossProductMatrix(pi-pj);
-
-            Vector3d di = -(Dn1_coeff.transpose()*Dn1_i - Dn0_coeff.transpose()*Dn0_i).transpose();
-            Vector3d dj = -(Dn1_coeff.transpose()*Dn1_j - Dn0_coeff.transpose()*Dn0_j).transpose();
-            Vector3d dk = -(-Dn0_coeff.transpose()*Dn0_k).transpose();
-            Vector3d dl = -(Dn1_coeff.transpose()*Dn1_l).transpose();
-
-            force.segment<3>(3*hinge.ep1) += rest_coeff * di;
-            force.segment<3>(3*hinge.ep2) += rest_coeff * dj;
-            force.segment<3>(3*hinge.v1) += rest_coeff * dk;
-            force.segment<3>(3*hinge.v2) += rest_coeff * dl;
-        }
-    }
-
-    if (params_.activeForces & SimParameters::F_CONTACT) {
-        for (int i=0; i < cloth_->mesh_->getNumVerts(); i++) {
-            Vector3d pt = cloth_->getVert(i);
-
-            double dist;
-            Vector3d Ddist;
-            Matrix3d bodyrot = VectorMath::rotationMatrix(bodyInstance_->theta);
-            Vector3d testpt = bodyrot.transpose()*(pt - bodyInstance_->c);
-
-            if(bodyInstance_->getTemplate().getSDF()->signedDistanceAndGradient(testpt, dist, Ddist) && dist < 0)
-            {
-                Vector3d vel1 = cloth_->velocities_.segment<3>(3*i);
-                Vector3d vel2 = bodyInstance_->cvel +bodyrot*(bodyInstance_->w.cross(testpt));
-                Vector3d relvel = (vel1-vel2);
-                double stiffness = params_.penaltyStiffness * (relvel.dot(bodyrot*Ddist) > 0 ? params_.cor : 1.0);
-                force.segment<3>(3*i) += -stiffness*dist*bodyrot*Ddist;
-            }
-        }
-    }
-    return force;
 }

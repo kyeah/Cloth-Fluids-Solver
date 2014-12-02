@@ -32,28 +32,14 @@ void MainWindow::setParametersFromUI()
     params.simRunning = simRunning_;
 
     params.timeStep = ui->timeStepEdit->text().toDouble();
-    params.penaltyStiffness = ui->penaltyStiffnessEdit->text().toDouble();
-    params.pinCorner = ui->pinClothCornersCheckbox->isChecked();
     params.applyFluidDragForce = ui->fluidDragForceCheckbox->isChecked();
 
     params.activeForces = 0;
     if(ui->gravityCheckBox->isChecked())
         params.activeForces |= SimParameters::F_GRAVITY;
-    if(ui->clothStretchingCheckBox->isChecked())
-        params.activeForces |= SimParameters::F_STRETCHING;
-    if(ui->clothBendingCheckbox->isChecked())
-        params.activeForces |= SimParameters::F_BENDING;
-    if(ui->bodyClothContactCheckbox->isChecked())
-        params.activeForces |= SimParameters::F_CONTACT;
-    if(ui->massDampingCheckBox->isChecked())
-        params.activeForces |= SimParameters::F_DAMPING;
 
     params.gravityG = ui->gravityGEdit->text().toDouble();
-    params.stretchingK = ui->stretchingStiffnessEdit->text().toDouble();
-    params.bendingK = ui->bendingStiffnessEdit->text().toDouble();
-    params.dampingCoeff = ui->dampingCoeffEdit->text().toDouble();
-
-    params.cor = ui->corEdit->text().toDouble();
+    params.kDiffusion = ui->kDiffEdit->text().toDouble();
 
     setUIFromParameters(params);
     QMetaObject::invokeMethod(&cont_, "updateParameters", Q_ARG(SimParameters, params));
@@ -73,21 +59,12 @@ void MainWindow::setUIFromParameters(const SimParameters &params)
     }
 
     ui->timeStepEdit->setText(QString::number(params.timeStep));
-    ui->penaltyStiffnessEdit->setText(QString::number(params.penaltyStiffness));
-    ui->pinClothCornersCheckbox->setChecked(params.pinCorner);
     ui->fluidDragForceCheckbox->setChecked(params.applyFluidDragForce);
 
     ui->gravityCheckBox->setChecked(params.activeForces & SimParameters::F_GRAVITY);
-    ui->clothStretchingCheckBox->setChecked(params.activeForces & SimParameters::F_STRETCHING);
-    ui->clothBendingCheckbox->setChecked(params.activeForces & SimParameters::F_BENDING);
-    ui->bodyClothContactCheckbox->setChecked(params.activeForces & SimParameters::F_CONTACT);
-    ui->massDampingCheckBox->setChecked(params.activeForces & SimParameters::F_DAMPING);
 
     ui->gravityGEdit->setText(QString::number(params.gravityG));
-    ui->stretchingStiffnessEdit->setText(QString::number(params.stretchingK));
-    ui->bendingStiffnessEdit->setText(QString::number(params.bendingK));
-    ui->corEdit->setText(QString::number(params.cor));   
-    ui->dampingCoeffEdit->setText(QString::number(params.dampingCoeff));
+    ui->kDiffEdit->setText(QString::number(params.kDiffusion));
 }
 
 void MainWindow::updateGL()

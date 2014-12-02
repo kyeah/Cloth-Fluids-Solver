@@ -71,7 +71,6 @@ void Controller::mouseDragged(Eigen::Vector2d pos, Eigen::Vector2d lastPos) {
 
 void Controller::accelerateBody(double vx, double vy, double vz, double wx, double wy, double wz)
 {
-    sim_->accelerateBody(vx,vy,vz, wx, wy, wz);
 }
 
 void Controller::simTick()

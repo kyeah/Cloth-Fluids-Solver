@@ -8,11 +8,7 @@
 #include <QMutex>
 #include "simparameters.h"
 #include <QGLWidget>
-#include "cloth.h"
 #include "mat3d.h"
-
-class RigidBodyTemplate;
-class RigidBodyInstance;
 
 typedef Eigen::Triplet<double> Tr;
 
@@ -31,9 +27,6 @@ public:
     void renderObjects();
     void clearScene();
     void addVelocity(Eigen::Vector2d pos, Eigen::Vector2d vel);
-    void accelerateBody(double vx, double vy, double vz, double wx, double wy, double wz);
-    Eigen::VectorXd computeGravForce();
-    Eigen::VectorXd computeClothForce();
 
     void stableFluidSolve();
     void diffuse(Mat3D *x, Mat3D *xprev);
@@ -45,7 +38,6 @@ public:
 
 private:
     void loadFloorTexture();
-    void loadRigidBodies();
 
     const SimParameters &params_;
     QMutex renderLock_;
@@ -53,9 +45,6 @@ private:
     double time_;
     GLuint floorTex_;
 
-    RigidBodyTemplate * bodyTemplate_;
-    RigidBodyInstance * bodyInstance_;
-    Cloth *cloth_;
     Mat3D *fluidvx, *fluidvy, *fluidvz,
     *fluidvx_prev, *fluidvy_prev, *fluidvz_prev,
     *fluiddensity, *fluiddensity_prev;

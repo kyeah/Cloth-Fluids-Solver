@@ -163,19 +163,6 @@
               <string>Pin Cloth Corner</string>
              </property>
             </widget>
-            <widget class="QCheckBox" name="fluidDragForceCheckbox">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>100</y>
-               <width>191</width>
-               <height>21</height>
-              </rect>
-             </property>
-             <property name="text">
-              <string>Apply Fluid Drag Force</string>
-             </property>
-            </widget>
            </widget>
           </item>
          </layout>
@@ -229,20 +216,7 @@
           </rect>
          </property>
         </widget>
-        <widget class="QCheckBox" name="clothStretchingCheckBox">
-         <property name="geometry">
-          <rect>
-           <x>30</x>
-           <y>50</y>
-           <width>121</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Stretching</string>
-         </property>
-        </widget>
-        <widget class="QLabel" name="stretchingStiffnessLabel">
+        <widget class="QLabel" name="kDiffLabel">
          <property name="geometry">
           <rect>
            <x>230</x>
@@ -252,10 +226,10 @@
           </rect>
          </property>
          <property name="text">
-          <string>Stretching K:</string>
+          <string>Diffusion K:</string>
          </property>
         </widget>
-        <widget class="QLineEdit" name="stretchingStiffnessEdit">
+        <widget class="QLineEdit" name="kDiffEdit">
          <property name="geometry">
           <rect>
            <x>370</x>
@@ -265,112 +239,17 @@
           </rect>
          </property>
         </widget>
-        <widget class="QCheckBox" name="clothBendingCheckbox">
+        <widget class="QCheckBox" name="fluidDragForceCheckbox">
          <property name="geometry">
           <rect>
            <x>30</x>
-           <y>70</y>
-           <width>121</width>
+           <y>50</y>
+           <width>191</width>
            <height>21</height>
           </rect>
          </property>
          <property name="text">
-          <string>Bending</string>
-         </property>
-        </widget>
-        <widget class="QLabel" name="bendingStiffnessLabel">
-         <property name="geometry">
-          <rect>
-           <x>230</x>
-           <y>70</y>
-           <width>121</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Bending K:</string>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="bendingStiffnessEdit">
-         <property name="geometry">
-          <rect>
-           <x>370</x>
-           <y>70</y>
-           <width>51</width>
-           <height>21</height>
-          </rect>
-         </property>
-        </widget>
-        <widget class="QCheckBox" name="bodyClothContactCheckbox">
-         <property name="geometry">
-          <rect>
-           <x>30</x>
-           <y>90</y>
-           <width>161</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Body-Cloth Contact</string>
-         </property>
-        </widget>
-        <widget class="QLabel" name="corLabel">
-         <property name="geometry">
-          <rect>
-           <x>230</x>
-           <y>90</y>
-           <width>121</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Coeff Restitution:</string>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="corEdit">
-         <property name="geometry">
-          <rect>
-           <x>370</x>
-           <y>90</y>
-           <width>51</width>
-           <height>21</height>
-          </rect>
-         </property>
-        </widget>
-        <widget class="QCheckBox" name="massDampingCheckBox">
-         <property name="geometry">
-          <rect>
-           <x>30</x>
-           <y>110</y>
-           <width>161</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Mass Damping</string>
-         </property>
-        </widget>
-        <widget class="QLabel" name="dampingCoeffLabel">
-         <property name="geometry">
-          <rect>
-           <x>230</x>
-           <y>110</y>
-           <width>121</width>
-           <height>21</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Damping Coeff:</string>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="dampingCoeffEdit">
-         <property name="geometry">
-          <rect>
-           <x>370</x>
-           <y>110</y>
-           <width>51</width>
-           <height>21</height>
-          </rect>
+          <string>Apply Fluid Drag Force</string>
          </property>
         </widget>
        </widget>

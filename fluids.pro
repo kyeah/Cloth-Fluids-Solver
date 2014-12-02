@@ -20,31 +20,18 @@ SOURCES += main.cpp\
     controller.cpp \
     simulation.cpp \
     simparameters.cpp \
-    mesh.cpp \
-    rigidbodytemplate.cpp \
-    rigidbodyinstance.cpp \
     vectormath.cpp \
     camera.cpp \
-    rotator.cpp \
-    signeddistancefield.cpp \
-    collisions/CTCD.cpp \
-    cloth.cpp
+    rotator.cpp
 
 HEADERS  += mainwindow.h \
     glpanel.h \
     controller.h \
     simulation.h \
     simparameters.h \
-    mesh.h \
-    rigidbodytemplate.h \
-    rigidbodyinstance.h \
     vectormath.h \
     camera.h \
     rotator.h \
-    signeddistancefield.h \
-    collisions/Distance.h \
-    collisions/CTCD.h \
-    cloth.h \
     mat3d.h
 
 FORMS    += mainwindow.ui
