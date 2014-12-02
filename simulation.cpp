@@ -13,6 +13,7 @@
 #include "signeddistancefield.h"
 #include <unsupported/Eigen/FFT>
 
+// Quick macro to swap two matrix pointers
 #define SWAP_MAT(A,B) {Mat3D *tmp=A;A=B;B=tmp;}
 
 const double PI = 3.1415926535898;
@@ -208,21 +209,23 @@ void Simulation::addVelocity(Eigen::Vector2d pos, Eigen::Vector2d vel) {
         return;
     }
 
-    fluiddensity->valAt(px, py, params_.gridSize/2) += 100;
-    fluidvx->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
-    fluidvy->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
-    fluidvz->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
-    fluidvx_prev->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
-    fluidvy_prev->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
-    fluidvz_prev->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
-    set_bnd ( params_.gridSize, 0, fluidvx );
-    set_bnd ( params_.gridSize, 0, fluidvy );
-    set_bnd ( params_.gridSize, 0, fluidvz );
+    if (params_.applyFluidDragForce) {
+        fluidvx->valAt(px, py, params_.gridSize/2) += vel[0];
+        fluidvy->valAt(px, py, params_.gridSize/2) += vel[1];
 
-    //fluiddensity_prev->valAt(px, py) += .001;
+    } else {
+        fluiddensity->valAt(px, py, params_.gridSize/2) += 100;
+        fluidvx->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
+        fluidvy->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
+        fluidvz->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
+        fluidvx_prev->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
+        fluidvy_prev->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
+        fluidvz_prev->valAt(px, py, params_.gridSize/2) += VectorMath::randomUnitIntervalReal() * 980;
+    }
 
-    //fluidvx->valAt(px, py) += vel[0];
-    //fluidvy->valAt(px, py) += vel[1];
+    bound_mat ( params_.gridSize, 0, fluidvx );
+    bound_mat ( params_.gridSize, 0, fluidvy );
+    bound_mat ( params_.gridSize, 0, fluidvz );
 }
 
 void Simulation::clearScene()
@@ -250,7 +253,6 @@ void Simulation::clearScene()
         fluidvz_prev = new Mat3D(params_.gridSize+2, params_.gridSize+2, params_.gridSize+2);
         fluiddensity = new Mat3D(params_.gridSize+2, params_.gridSize+2, params_.gridSize+2);
         fluiddensity_prev = new Mat3D(params_.gridSize+2, params_.gridSize+2, params_.gridSize+2);
-        //fluiddensity->valAt(params_.gridSize/2, params_.gridSize/2, params_.gridSize/2) = 1;
     }
     renderLock_.unlock();
 }
@@ -274,31 +276,34 @@ VectorXd Simulation::computeGravForce() {
     return force;
 }
 
-void Simulation::set_bnd ( int N, int b, Mat3D *x ) {
+void Simulation::bound_mat ( int N, int b, Mat3D *x ) {
+    /* Sets non-wrapping boundaries along the fluid container.
+     *
+     * @params:
+     *   N: Gridsize, not including the boundary
+     *   b: bounding wrap. 0=passthru, 1=no-xwrap, 2=no-ywrap, 3=no-zwrap
+     */
+
     int i, k;
 
+    // Set non-wrapping boundaries
     for ( i=1 ; i<=N ; i++ ) {
-        /*
-        x->valAt(0,i) = (b==1 ? -2*x->valAt(1,i) : -2*x->valAt(1,i));
-        x->valAt(N+1,i) = b==1 ? -2*x->valAt(N,i) : -2*x->valAt(N,i);
-        x->valAt(i,0 ) = b==2 ? -x->valAt(i,1) : -2*x->valAt(i,1);
-        x->valAt(i,N+1) = b==2 ? -x->valAt(i,N) : -2*x->valAt(i,N);
-        */
         for (k=1; k <= N; k++) {
+            // Sides aligned with x axis
             x->valAt(0,i,k) = b==1 ? -x->valAt(1,i,k) : x->valAt(1,i,k);
             x->valAt(N+1,i,k) = b==1 ? -x->valAt(N,i,k) : x->valAt(N,i,k);
+
+            // Sides aligned with y axis
             x->valAt(i,0,k) = b==2 ? -x->valAt(i,1,k) : x->valAt(i,1,k);
             x->valAt(i,N+1,k) = b==2 ? -x->valAt(i,N,k) : x->valAt(i,N,k);
+
+            // Sides aligned with z axis
             x->valAt(i,k,0) = b==3 ? -x->valAt(i,1,k) : x->valAt(i,k,1);
             x->valAt(i,k,N+1) = b==3 ? -x->valAt(i,k,N) : x->valAt(i,k,N);
-            /*
-            x->valAt(i,0,k) += b!=0 ? 0 : x->valAt(i+1,1,k) + x->valAt(i+1,1,k+1) + x->valAt(i,1,k+1) + x->valAt(i-1,1,k) + x->valAt(i-1,1,k+1) + x->valAt(i-1,1,k-1) + x->valAt(i,1,k-1) + x->valAt(i+1,1,k-1);
-            x->valAt(i,N+1,k) = b!=0 ? 0 : x->valAt(i+1,N,k) + x->valAt(i+1,N,k+1) + x->valAt(i,N,k+1) + x->valAt(i-1,N,k) + x->valAt(i-1,N,k+1) + x->valAt(i-1,N,k-1) + x->valAt(i,N,k-1) + x->valAt(i+1,N,k-1);
-            x->valAt(i,0,k) /= b!=0 ? 1 : 9;
-            x->valAt(i,N+1,k) /= b!=0 ? 1 : 9;*/
         }
     }
 
+    // Average the corners with neighboring perimeter values
     x->valAt(0,0,0)    = 0.333*(x->valAt(1,0,0) + x->valAt(0,1,0) + x->valAt(0,0,1));
     x->valAt(0,N+1,0)  = 0.333*(x->valAt(1,N+1,0) + x->valAt(0,N,0)  + x->valAt(0,N+1,1));
     x->valAt(N+1,0,0)  = 0.333*(x->valAt(N,0,0)  + x->valAt(N+1,1,0) + x->valAt(N+1,0,1));
@@ -313,10 +318,10 @@ void Simulation::set_bnd ( int N, int b, Mat3D *x ) {
 void Simulation::diffuse(Mat3D *x, Mat3D *xprev) {
   int iters, i, j, k;
 
-  float dt = params_.timeStep;
   int n = params_.gridSize;
-  float kDiffusion = .0001;
-  float a=dt*kDiffusion*pow(n, 3);
+  float dt = params_.timeStep;
+  float kDiffusion = params_.kDiffusion;
+  float coeff=dt*kDiffusion*pow(n, 3);
 
   // Gauss-Seidel Relaxation
   for ( iters=0 ; iters<10 ; iters++ ) {
@@ -324,13 +329,13 @@ void Simulation::diffuse(Mat3D *x, Mat3D *xprev) {
         for ( j=1 ; j<=n ; j++ ) {
             for ( k=1 ; k<=n ; k++ ) {
                 x->valAt(i,j,k) = (xprev->valAt(i,j,k) +
-                               a*(x->valAt(i-1,j,k) + x->valAt(i+1,j,k) +
-                                  x->valAt(i,j-1,k) + x->valAt(i,j+1,k) +
-                                  x->valAt(i,j,k-1) + x->valAt(i,j,k+1)))/(1+6*a);
+                               coeff*(x->valAt(i-1,j,k) + x->valAt(i+1,j,k) +
+                                      x->valAt(i,j-1,k) + x->valAt(i,j+1,k) +
+                                      x->valAt(i,j,k-1) + x->valAt(i,j,k+1)))/(1+6*coeff);
             }
         }
     }
-    set_bnd ( n, 0, x );
+    bound_mat(n, 0, x);
   }
 }
 
@@ -350,13 +355,21 @@ void Simulation::advect(Mat3D *x, Mat3D *xprev, Mat3D *vx, Mat3D *vy, Mat3D *vz)
           yi = j - dt*n*vy->valAt(i,j,k);
           zi = k - dt*n*vz->valAt(i,j,k);
 
-          // Clip
-          if (xi<0.5) xi=0.5; if (xi>n+0.5) xi=n+ 0.5; i0=(int)xi; i1=i0+1;
-          if (yi<0.5) yi=0.5; if (yi>n+0.5) yi=n+ 0.5; j0=(int)yi; j1=j0+1;
-          if (zi<0.5) zi=0.5; if (zi>n+0.5) zi=n+ 0.5; k0=(int)zi; k1=k0+1;
+          // Clamp indexes
+          if (xi<0.5) xi=0.5; if (xi>n+0.5) xi=n+0.5;
+          i0=(int)xi; i1=i0+1;
 
-          // Interpolate
-          s1 = xi-i0; s0 = 1-s1; t1 = yi-j0; t0 = 1-t1; u1 = zi-k0; u0 = 1-u1;
+          if (yi<0.5) yi=0.5; if (yi>n+0.5) yi=n+0.5;
+          j0=(int)yi; j1=j0+1;
+
+          if (zi<0.5) zi=0.5; if (zi>n+0.5) zi=n+0.5;
+          k0=(int)zi; k1=k0+1;
+
+          // Tri-linear interpolation using previous values of x
+          s1 = xi-i0; s0 = 1-s1;
+          t1 = yi-j0; t0 = 1-t1;
+          u1 = zi-k0; u0 = 1-u1;
+
           x->valAt(i,j,k) =
                   u0*(s0*(t0*xprev->valAt(i0,j0,k0) + t1*xprev->valAt(i0,j1,k0))+
                       s1*(t0*xprev->valAt(i1,j0,k0) + t1*xprev->valAt(i1,j1,k0))) +
@@ -365,67 +378,67 @@ void Simulation::advect(Mat3D *x, Mat3D *xprev, Mat3D *vx, Mat3D *vy, Mat3D *vz)
       }
      }
     }
-    set_bnd ( n, 0, x );
+
+    bound_mat (n, 0, x);
 }
 
 void Simulation::project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz, Mat3D *fluidvx_prev, Mat3D *fluidvy_prev, Mat3D *fluidvz_prev) {
-    // Conserves Mass within the System
+    /*
+     * Conserves Mass within the System.
+     */
+
     int iters, i, j, k;
-    float h;
 
     int n = params_.gridSize;
+    float h = 1.0/n;  // Grid cell height
 
-    h = 1.0/n;
-
-    Mat3D mat(fluidvy->rows, fluidvy->cols, fluidvy->depth);
-    Mat3D mat2(fluidvx->rows, fluidvx->cols, fluidvx->depth);
+    Mat3D cell_flow(fluidvy->rows, fluidvy->cols, fluidvy->depth);
+    Mat3D conservation_mat(fluidvx->rows, fluidvx->cols, fluidvx->depth);
 
     for ( i=1 ; i<=n ; i++ ) {
         for ( j=1 ; j<=n ; j++ ) {
             for ( k=1 ; k<=n ; k++ ) {
                 // Find total flow through pt i,j,k
-                mat.valAt(i,j,k) = -0.333*h*(fluidvx->valAt(i+1,j,k)-fluidvx->valAt(i-1,j,k)+
-                                                       fluidvy->valAt(i,j+1,k)-fluidvy->valAt(i,j-1,k)+
-                                                       fluidvz->valAt(i,j,k+1)-fluidvz->valAt(i,j,k-1));
-                mat2.valAt(i,j,k) = 0;
+                cell_flow.valAt(i,j,k) = -0.333*h*(fluidvx->valAt(i+1,j,k)-fluidvx->valAt(i-1,j,k)+
+                                                   fluidvy->valAt(i,j+1,k)-fluidvy->valAt(i,j-1,k)+
+                                                   fluidvz->valAt(i,j,k+1)-fluidvz->valAt(i,j,k-1));
             }
         }
     }
 
-    set_bnd ( n, 0, &mat );
+    bound_mat (n, 0, &cell_flow);
 
+    // Solve Poisson Equation using Gauss-Seidel relaxation
     for ( iters=0 ; iters<10 ; iters++ ) {
         for ( i=1 ; i<=n ; i++ ) {
             for ( j=1 ; j<=n ; j++ ) {
                 for ( k=1 ; k<=n ; k++ ) {
-                    mat2.valAt(i,j,k) = (mat.valAt(i,j,k) +
-                                                mat2.valAt(i-1,j,k) + mat2.valAt(i+1,j,k) +
-                                                mat2.valAt(i,j-1,k) + mat2.valAt(i,j+1,k) +
-                                                mat2.valAt(i,j,k-1) + mat2.valAt(i,j,k+1))/6;
+                    conservation_mat.valAt(i,j,k) = (cell_flow.valAt(i,j,k) +
+                                         conservation_mat.valAt(i-1,j,k) + conservation_mat.valAt(i+1,j,k) +
+                                         conservation_mat.valAt(i,j-1,k) + conservation_mat.valAt(i,j+1,k) +
+                                         conservation_mat.valAt(i,j,k-1) + conservation_mat.valAt(i,j,k+1))/6;
                 }
             }
         }
-        set_bnd ( n, 0, &mat2 );
+        bound_mat (n, 0, &conservation_mat);
      }
 
+    // Subtract gradient map from velocity matrices
      for ( i=1 ; i<=n ; i++ ) {
         for ( j=1 ; j<=n ; j++ ) {
             for ( k=1 ; k<=n ; k++ ) {
-                fluidvx->valAt(i,j,k) -= 0.5*(mat2.valAt(i+1,j,k) - mat2.valAt(i-1,j,k))/h;
-                fluidvy->valAt(i,j,k) -= 0.5*(mat2.valAt(i,j+1,k) - mat2.valAt(i,j-1,k))/h;
-                fluidvz->valAt(i,j,k) -= 0.5*(mat2.valAt(i,j,k+1) - mat2.valAt(i,j,k-1))/h;
+                fluidvx->valAt(i,j,k) -= 0.5*(conservation_mat.valAt(i+1,j,k) - conservation_mat.valAt(i-1,j,k))/h;
+                fluidvy->valAt(i,j,k) -= 0.5*(conservation_mat.valAt(i,j+1,k) - conservation_mat.valAt(i,j-1,k))/h;
+                fluidvz->valAt(i,j,k) -= 0.5*(conservation_mat.valAt(i,j,k+1) - conservation_mat.valAt(i,j,k-1))/h;
             }
         }
      }
 
-     set_bnd ( n, 1, fluidvx ); set_bnd ( n, 2, fluidvy ); set_bnd (n, 3, fluidvz);
+     bound_mat (n, 1, fluidvx); bound_mat (n, 2, fluidvy); bound_mat (n, 3, fluidvz);
 }
 
 void Simulation::stableFluidSolve() {
-  int i, j, k;
   int n = params_.gridSize;
-
-  double dt = params_.timeStep;
 
   // Density Diffusion
   SWAP_MAT(fluiddensity_prev, fluiddensity)
@@ -435,19 +448,19 @@ void Simulation::stableFluidSolve() {
   SWAP_MAT(fluiddensity_prev, fluiddensity)
   advect(fluiddensity, fluiddensity_prev, fluidvx, fluidvy, fluidvz);
 
-  for (int i = 1; i <= params_.gridSize; i++) {
-      for (int j = 1; j <= params_.gridSize; j++) {
-          for (int k = 1; k <= params_.gridSize; k++) {
-
+  // Add forces to velocity
+  for (int i = 1; i <= n; i++) {
+      for (int j = 1; j <= n; j++) {
+          for (int k = 1; k <= n; k++) {
               fluidvy_prev->valAt(i, j, k) += params_.gravityG;
               fluidvy->valAt(i, j, k) += params_.gravityG;
-              //fluiddensity_prev->valAt(i, j) = fluiddensity->valAt(i, j);
           }
       }
   }
-  set_bnd ( n, 1, fluidvx );
-  set_bnd ( n, 2, fluidvy );
-  set_bnd ( n, 3, fluidvz );
+
+  bound_mat (n, 1, fluidvx);
+  bound_mat (n, 2, fluidvy);
+  bound_mat (n, 3, fluidvz);
 
   // Velocity Diffusion
   SWAP_MAT(fluidvx_prev, fluidvx)
@@ -457,11 +470,11 @@ void Simulation::stableFluidSolve() {
   diffuse(fluidvx, fluidvx_prev);
   diffuse(fluidvy, fluidvy_prev);
   diffuse(fluidvz, fluidvz_prev);
-  set_bnd ( n, 1, fluidvx );
-  set_bnd ( n, 2, fluidvy );
-  set_bnd ( n, 3, fluidvz );
+  bound_mat (n, 1, fluidvx);
+  bound_mat (n, 2, fluidvy);
+  bound_mat (n, 3, fluidvz);
 
-  // project
+  // Pre-Projection
   project(fluidvx, fluidvy, fluidvz, fluidvx_prev, fluidvy_prev, fluidvz_prev);
 
    // Velocity Self-Advection
@@ -471,14 +484,11 @@ void Simulation::stableFluidSolve() {
   advect(fluidvx, fluidvx_prev, fluidvx_prev, fluidvy_prev, fluidvz_prev);
   advect(fluidvy, fluidvy_prev, fluidvx_prev, fluidvy_prev, fluidvz_prev);
   advect(fluidvz, fluidvz_prev, fluidvx_prev, fluidvy_prev, fluidvz_prev);
-  set_bnd ( n, 1, fluidvx );
-  set_bnd ( n, 2, fluidvy );
-  set_bnd ( n, 3, fluidvz );
+  bound_mat (n, 1, fluidvx);
+  bound_mat (n, 2, fluidvy);
+  bound_mat (n, 3, fluidvz);
 
-  //set_bnd ( n, 0, fluidvx_prev );
-  //set_bnd ( n, 0, fluidvy_prev );
-  //set_bnd ( n, 0, fluidvz_prev );
-  // project
+  // Post-Projection
   project(fluidvx, fluidvy, fluidvz, fluidvx_prev, fluidvy_prev, fluidvz_prev);
 
 }

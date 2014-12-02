@@ -34,6 +34,7 @@ void MainWindow::setParametersFromUI()
     params.timeStep = ui->timeStepEdit->text().toDouble();
     params.penaltyStiffness = ui->penaltyStiffnessEdit->text().toDouble();
     params.pinCorner = ui->pinClothCornersCheckbox->isChecked();
+    params.applyFluidDragForce = ui->fluidDragForceCheckbox->isChecked();
 
     params.activeForces = 0;
     if(ui->gravityCheckBox->isChecked())
@@ -74,6 +75,7 @@ void MainWindow::setUIFromParameters(const SimParameters &params)
     ui->timeStepEdit->setText(QString::number(params.timeStep));
     ui->penaltyStiffnessEdit->setText(QString::number(params.penaltyStiffness));
     ui->pinClothCornersCheckbox->setChecked(params.pinCorner);
+    ui->fluidDragForceCheckbox->setChecked(params.applyFluidDragForce);
 
     ui->gravityCheckBox->setChecked(params.activeForces & SimParameters::F_GRAVITY);
     ui->clothStretchingCheckBox->setChecked(params.activeForces & SimParameters::F_STRETCHING);
@@ -171,6 +173,11 @@ void MainWindow::on_massDampingCheckBox_clicked()
 }
 
 void MainWindow::on_dampingCoeffEdit_editingFinished()
+{
+    setParametersFromUI();
+}
+
+void MainWindow::on_fluidDragForceCheckbox_clicked()
 {
     setParametersFromUI();
 }

@@ -59,6 +59,8 @@ private slots:
 
     void on_dampingCoeffEdit_editingFinished();
 
+    void on_fluidDragForceCheckbox_clicked();
+
 private:
     Controller &cont_;
     Ui::MainWindow *ui;

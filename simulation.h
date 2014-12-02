@@ -41,7 +41,7 @@ public:
     void project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz,
                  Mat3D *fluidvx_prev, Mat3D *fluidvy_prev, Mat3D *fluidvz_prev);
 
-    void set_bnd ( int N, int b, Mat3D *x );
+    void bound_mat(int gridSize, int b, Mat3D *x);
 
 private:
     void loadFloorTexture();

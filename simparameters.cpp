@@ -17,4 +17,6 @@ SimParameters::SimParameters()
 
     gridSize = 30;
     viscosity = .00028;
+    kDiffusion = .0001;
+    applyFluidDragForce = false;
 }

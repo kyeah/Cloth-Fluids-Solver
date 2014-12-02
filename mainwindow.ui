@@ -97,8 +97,6 @@
               <string>Start Simulation</string>
              </property>
             </widget>
-            <zorder>startSimulationButton</zorder>
-            <zorder>activeForcesBox</zorder>
            </widget>
           </item>
           <item>
@@ -163,6 +161,19 @@
              </property>
              <property name="text">
               <string>Pin Cloth Corner</string>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="fluidDragForceCheckbox">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>100</y>
+               <width>191</width>
+               <height>21</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Apply Fluid Drag Force</string>
              </property>
             </widget>
            </widget>

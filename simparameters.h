@@ -26,6 +26,9 @@ struct SimParameters
     double cor;
     int gridSize;
     double viscosity;
+    double kDiffusion;
+
+    bool applyFluidDragForce;
 };
 
 #endif // SIMPARAMETERS_H

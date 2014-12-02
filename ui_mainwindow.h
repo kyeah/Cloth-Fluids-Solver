@@ -54,6 +54,7 @@ public:
     QLabel *penaltyStiffnessLabel;
     QLineEdit *penaltyStiffnessEdit;
     QCheckBox *pinClothCornersCheckbox;
+    QCheckBox *fluidDragForceCheckbox;
     QGroupBox *activeForcesBox;
     QCheckBox *gravityCheckBox;
     QLabel *gravityGLabel;
@@ -127,7 +128,6 @@ public:
         startSimulationButton = new QPushButton(SimulationBox);
         startSimulationButton->setObjectName(QString::fromUtf8("startSimulationButton"));
         startSimulationButton->setGeometry(QRect(10, 40, 181, 27));
-        startSimulationButton->raise();
 
         horizontalLayout->addWidget(SimulationBox);
 
@@ -148,6 +148,9 @@ public:
         pinClothCornersCheckbox = new QCheckBox(SimParametersBox);
         pinClothCornersCheckbox->setObjectName(QString::fromUtf8("pinClothCornersCheckbox"));
         pinClothCornersCheckbox->setGeometry(QRect(10, 80, 151, 21));
+        fluidDragForceCheckbox = new QCheckBox(SimParametersBox);
+        fluidDragForceCheckbox->setObjectName(QString::fromUtf8("fluidDragForceCheckbox"));
+        fluidDragForceCheckbox->setGeometry(QRect(10, 100, 191, 21));
 
         horizontalLayout->addWidget(SimParametersBox);
 
@@ -245,6 +248,7 @@ public:
         timeStepLabel->setText(QApplication::translate("MainWindow", "Time Step:", 0, QApplication::UnicodeUTF8));
         penaltyStiffnessLabel->setText(QApplication::translate("MainWindow", "Penalty Stiffness:", 0, QApplication::UnicodeUTF8));
         pinClothCornersCheckbox->setText(QApplication::translate("MainWindow", "Pin Cloth Corner", 0, QApplication::UnicodeUTF8));
+        fluidDragForceCheckbox->setText(QApplication::translate("MainWindow", "Apply Fluid Drag Force", 0, QApplication::UnicodeUTF8));
         activeForcesBox->setTitle(QApplication::translate("MainWindow", "Active Forces", 0, QApplication::UnicodeUTF8));
         gravityCheckBox->setText(QApplication::translate("MainWindow", "Gravity", 0, QApplication::UnicodeUTF8));
         gravityGLabel->setText(QApplication::translate("MainWindow", "Acceleration:", 0, QApplication::UnicodeUTF8));
