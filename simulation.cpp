@@ -397,7 +397,7 @@ void Simulation::stableFluidSolve() {
   // Velocity Diffusion
   SWAP_MAT(fluidvx_prev, fluidvx)
   SWAP_MAT(fluidvy_prev, fluidvy)
-  SWAP_MAT(fluidvy_prev, fluidvy)
+  SWAP_MAT(fluidvz_prev, fluidvz)
 
   diffuse(fluidvx, fluidvx_prev);
   diffuse(fluidvy, fluidvy_prev);

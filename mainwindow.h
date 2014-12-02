@@ -39,27 +39,9 @@ private slots:
 
     void on_gravityGEdit_editingFinished();
 
-    void on_penaltyStiffnessEdit_editingFinished();
-
-    void on_corEdit_editingFinished();
-
-    void on_pinClothCornersCheckbox_clicked();
-
-    void on_clothStretchingCheckBox_clicked();
-
-    void on_clothBendingCheckbox_clicked();
-
-    void on_stretchingStiffnessEdit_editingFinished();
-
-    void on_bendingStiffnessEdit_editingFinished();
-
-    void on_bodyClothContactCheckbox_clicked();
-
-    void on_massDampingCheckBox_clicked();
-
-    void on_dampingCoeffEdit_editingFinished();
-
     void on_fluidDragForceCheckbox_clicked();
+
+    void on_kDragMagEdit_editingFinished();
 
 private:
     Controller &cont_;

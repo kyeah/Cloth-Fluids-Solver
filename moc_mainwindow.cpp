@@ -22,7 +22,7 @@ static const uint qt_meta_data_MainWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      20,   14, // methods
+      11,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -40,16 +40,7 @@ static const uint qt_meta_data_MainWindow[] = {
      225,   11,   11,   11, 0x08,
      254,   11,   11,   11, 0x08,
      288,   11,   11,   11, 0x08,
-     330,   11,   11,   11, 0x08,
-     359,   11,   11,   11, 0x08,
-     396,   11,   11,   11, 0x08,
-     433,   11,   11,   11, 0x08,
-     467,   11,   11,   11, 0x08,
-     512,   11,   11,   11, 0x08,
-     554,   11,   11,   11, 0x08,
-     592,   11,   11,   11, 0x08,
-     625,   11,   11,   11, 0x08,
-     663,   11,   11,   11, 0x08,
+     324,   11,   11,   11, 0x08,
 
        0        // eod
 };
@@ -64,17 +55,8 @@ static const char qt_meta_stringdata_MainWindow[] = {
     "on_timeStepEdit_editingFinished()\0"
     "on_gravityCheckBox_clicked()\0"
     "on_gravityGEdit_editingFinished()\0"
-    "on_penaltyStiffnessEdit_editingFinished()\0"
-    "on_corEdit_editingFinished()\0"
-    "on_pinClothCornersCheckbox_clicked()\0"
-    "on_clothStretchingCheckBox_clicked()\0"
-    "on_clothBendingCheckbox_clicked()\0"
-    "on_stretchingStiffnessEdit_editingFinished()\0"
-    "on_bendingStiffnessEdit_editingFinished()\0"
-    "on_bodyClothContactCheckbox_clicked()\0"
-    "on_massDampingCheckBox_clicked()\0"
-    "on_dampingCoeffEdit_editingFinished()\0"
     "on_fluidDragForceCheckbox_clicked()\0"
+    "on_kDragMagEdit_editingFinished()\0"
 };
 
 void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -92,17 +74,8 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 6: _t->on_timeStepEdit_editingFinished(); break;
         case 7: _t->on_gravityCheckBox_clicked(); break;
         case 8: _t->on_gravityGEdit_editingFinished(); break;
-        case 9: _t->on_penaltyStiffnessEdit_editingFinished(); break;
-        case 10: _t->on_corEdit_editingFinished(); break;
-        case 11: _t->on_pinClothCornersCheckbox_clicked(); break;
-        case 12: _t->on_clothStretchingCheckBox_clicked(); break;
-        case 13: _t->on_clothBendingCheckbox_clicked(); break;
-        case 14: _t->on_stretchingStiffnessEdit_editingFinished(); break;
-        case 15: _t->on_bendingStiffnessEdit_editingFinished(); break;
-        case 16: _t->on_bodyClothContactCheckbox_clicked(); break;
-        case 17: _t->on_massDampingCheckBox_clicked(); break;
-        case 18: _t->on_dampingCoeffEdit_editingFinished(); break;
-        case 19: _t->on_fluidDragForceCheckbox_clicked(); break;
+        case 9: _t->on_fluidDragForceCheckbox_clicked(); break;
+        case 10: _t->on_kDragMagEdit_editingFinished(); break;
         default: ;
         }
     }
@@ -140,9 +113,9 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 20)
+        if (_id < 11)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 20;
+        _id -= 11;
     }
     return _id;
 }

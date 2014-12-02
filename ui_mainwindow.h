@@ -61,6 +61,8 @@ public:
     QLabel *kDiffLabel;
     QLineEdit *kDiffEdit;
     QCheckBox *fluidDragForceCheckbox;
+    QLabel *kDragMagLabel;
+    QLineEdit *kDragMagEdit;
     QMenuBar *menuBar;
     QMenu *menuFile;
     QMenu *menuScene;
@@ -158,13 +160,19 @@ public:
         gravityGEdit->setGeometry(QRect(370, 30, 51, 21));
         kDiffLabel = new QLabel(activeForcesBox);
         kDiffLabel->setObjectName(QString::fromUtf8("kDiffLabel"));
-        kDiffLabel->setGeometry(QRect(230, 50, 121, 21));
+        kDiffLabel->setGeometry(QRect(230, 70, 121, 21));
         kDiffEdit = new QLineEdit(activeForcesBox);
         kDiffEdit->setObjectName(QString::fromUtf8("kDiffEdit"));
-        kDiffEdit->setGeometry(QRect(370, 50, 51, 21));
+        kDiffEdit->setGeometry(QRect(370, 70, 51, 21));
         fluidDragForceCheckbox = new QCheckBox(activeForcesBox);
         fluidDragForceCheckbox->setObjectName(QString::fromUtf8("fluidDragForceCheckbox"));
         fluidDragForceCheckbox->setGeometry(QRect(30, 50, 191, 21));
+        kDragMagLabel = new QLabel(activeForcesBox);
+        kDragMagLabel->setObjectName(QString::fromUtf8("kDragMagLabel"));
+        kDragMagLabel->setGeometry(QRect(230, 50, 121, 21));
+        kDragMagEdit = new QLineEdit(activeForcesBox);
+        kDragMagEdit->setObjectName(QString::fromUtf8("kDragMagEdit"));
+        kDragMagEdit->setGeometry(QRect(370, 50, 51, 21));
 
         verticalLayout->addWidget(activeForcesBox);
 
@@ -213,6 +221,7 @@ public:
         gravityGLabel->setText(QApplication::translate("MainWindow", "Acceleration:", 0, QApplication::UnicodeUTF8));
         kDiffLabel->setText(QApplication::translate("MainWindow", "Diffusion K:", 0, QApplication::UnicodeUTF8));
         fluidDragForceCheckbox->setText(QApplication::translate("MainWindow", "Apply Fluid Drag Force", 0, QApplication::UnicodeUTF8));
+        kDragMagLabel->setText(QApplication::translate("MainWindow", "Drag Magnitude:", 0, QApplication::UnicodeUTF8));
         menuFile->setTitle(QApplication::translate("MainWindow", "File", 0, QApplication::UnicodeUTF8));
         menuScene->setTitle(QApplication::translate("MainWindow", "Scene", 0, QApplication::UnicodeUTF8));
     } // retranslateUi

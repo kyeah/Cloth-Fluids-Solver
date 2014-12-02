@@ -40,6 +40,7 @@ void MainWindow::setParametersFromUI()
 
     params.gravityG = ui->gravityGEdit->text().toDouble();
     params.kDiffusion = ui->kDiffEdit->text().toDouble();
+    params.dragForceMag = ui->kDragMagEdit->text().toDouble();
 
     setUIFromParameters(params);
     QMetaObject::invokeMethod(&cont_, "updateParameters", Q_ARG(SimParameters, params));
@@ -65,6 +66,7 @@ void MainWindow::setUIFromParameters(const SimParameters &params)
 
     ui->gravityGEdit->setText(QString::number(params.gravityG));
     ui->kDiffEdit->setText(QString::number(params.kDiffusion));
+    ui->kDragMagEdit->setText(QString::number(params.dragForceMag));
 }
 
 void MainWindow::updateGL()
@@ -104,57 +106,12 @@ void MainWindow::on_gravityGEdit_editingFinished()
     setParametersFromUI();
 }
 
-void MainWindow::on_penaltyStiffnessEdit_editingFinished()
-{
-    setParametersFromUI();
-}
-
-void MainWindow::on_corEdit_editingFinished()
-{
-    setParametersFromUI();
-}
-
-void MainWindow::on_pinClothCornersCheckbox_clicked()
-{
-    setParametersFromUI();
-}
-
-void MainWindow::on_clothStretchingCheckBox_clicked()
-{
-    setParametersFromUI();
-}
-
-void MainWindow::on_clothBendingCheckbox_clicked()
-{
-    setParametersFromUI();
-}
-
-void MainWindow::on_stretchingStiffnessEdit_editingFinished()
-{
-    setParametersFromUI();
-}
-
-void MainWindow::on_bendingStiffnessEdit_editingFinished()
-{
-    setParametersFromUI();
-}
-
-void MainWindow::on_bodyClothContactCheckbox_clicked()
-{
-    setParametersFromUI();
-}
-
-void MainWindow::on_massDampingCheckBox_clicked()
-{
-    setParametersFromUI();
-}
-
-void MainWindow::on_dampingCoeffEdit_editingFinished()
-{
-    setParametersFromUI();
-}
-
 void MainWindow::on_fluidDragForceCheckbox_clicked()
+{
+    setParametersFromUI();
+}
+
+void MainWindow::on_kDragMagEdit_editingFinished()
 {
     setParametersFromUI();
 }
