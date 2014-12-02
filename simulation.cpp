@@ -122,8 +122,11 @@ void Simulation::renderObjects()
     {
         bodyInstance_->render();
         cloth_->render();
-        glPointSize(5);
-        int pts[2] = { 0, params_.gridSize };
+        float scale = 0.5;
+        glPointSize(40*(1/scale));
+        int scaledGridSize = params_.gridSize * scale;
+
+        int pts[2] = { 0, scaledGridSize };
         glBegin(GL_LINES);
         glColor3f(0,0,0);
         for (int xi = 0; xi < 2; xi++) {
@@ -131,11 +134,11 @@ void Simulation::renderObjects()
                 int x = pts[xi];
                 int y = pts[yi];
                 glVertex3f(0, x, y);
-                glVertex3f(params_.gridSize, x, y);
+                glVertex3f(scaledGridSize, x, y);
                 glVertex3f(x, y, 0);
-                glVertex3f(x, y, params_.gridSize);
+                glVertex3f(x, y, scaledGridSize);
                 glVertex3f(x, 0, y);
-                glVertex3f(x, params_.gridSize, y);
+                glVertex3f(x, scaledGridSize, y);
             }
         }
         glEnd();
@@ -149,7 +152,7 @@ void Simulation::renderObjects()
 
                 float val = (fluiddensity->valAt(i,j,k)) * 2550;
                 glColor4f(val, 0, val, val);
-                glVertex3f((params_.gridSize - i), k, (j));
+                glVertex3f(scale*(params_.gridSize - i), scale*k, scale*j);
             }
             }
         }
@@ -442,6 +445,9 @@ void Simulation::stableFluidSolve() {
           }
       }
   }
+  set_bnd ( n, 1, fluidvx );
+  set_bnd ( n, 2, fluidvy );
+  set_bnd ( n, 3, fluidvz );
 
   // Velocity Diffusion
   SWAP_MAT(fluidvx_prev, fluidvx)

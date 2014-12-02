@@ -6,7 +6,7 @@ SimParameters::SimParameters()
     timeStep = 0.0001;
 
     activeForces = F_GRAVITY | F_STRETCHING | F_DAMPING | F_BENDING | F_CONTACT;
-    gravityG = -9.8;
+    gravityG = -3.4;
     penaltyStiffness = 100000;
     pinCorner = false;
 
