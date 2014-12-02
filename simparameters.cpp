@@ -12,4 +12,5 @@ SimParameters::SimParameters()
     viscosity = .00028;
     kDiffusion = .0001;
     applyFluidDragForce = false;
+    dragForceMag = 10000;
 }

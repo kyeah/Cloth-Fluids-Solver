@@ -51,8 +51,8 @@ void Camera::getZClipping(double &near, double &far) const
 
 void Camera::setDefault3D()
 {
-    viewCenter_ = Vector3d(1,0,5);
-    eye_ = Vector3d(0,0,5);
+    viewCenter_ = Vector3d(5,10,5);
+    eye_ = Vector3d(-2,27,5);
 }
 
 void Camera::translateEye(const Eigen::Vector3d &v)

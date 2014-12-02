@@ -159,7 +159,7 @@ void Simulation::takeSimulationStep()
 void Simulation::addVelocity(Eigen::Vector2d pos, Eigen::Vector2d vel) {
     int px = floor((pos[0] + 1)*params_.gridSize / 2);
     int py = floor((pos[1] + 1)*params_.gridSize / 2);
-    vel = 10000 * (vel / vel.norm());
+    vel = params_.dragForceMag * (vel / vel.norm());
 
     if (px < 0 || px >= params_.gridSize - 1 || py < 0 || py >= params_.gridSize - 1) {
         return;
