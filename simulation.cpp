@@ -226,8 +226,14 @@ void Simulation::bound_mat ( int N, int b, Mat3D *x ) {
             x->valAt(N+1,i,k) = b==1 ? -x->valAt(N,i,k) : x->valAt(N,i,k);
 
             // Sides aligned with y axis
-            x->valAt(i,0,k) = b==2 ? -x->valAt(i,1,k) : x->valAt(i,1,k);
-            x->valAt(i,N+1,k) = b==2 ? -x->valAt(i,N,k) : x->valAt(i,N,k);
+            x->valAt(i,0,k) = b==2 ? -2*x->valAt(i,1,k) : x->valAt(i,1,k);
+            x->valAt(i,N+1,k) = b==2 ? -2*x->valAt(i,N,k) : x->valAt(i,N,k);
+
+            // Average to simulate small pooling (TODO: More physically accurate way to do this)
+            x->valAt(i,0,k) += b!=0 ? 0 : x->valAt(i+1,1,k) + x->valAt(i+1,1,k+1) + x->valAt(i,1,k+1) + x->valAt(i-1,1,k) + x->valAt(i-1,1,k+1) + x->valAt(i-1,1,k-1) + x->valAt(i,1,k-1) + x->valAt(i+1,1,k-1);
+            x->valAt(i,N+1,k) = b!=0 ? 0 : x->valAt(i+1,N,k) + x->valAt(i+1,N,k+1) + x->valAt(i,N,k+1) + x->valAt(i-1,N,k) + x->valAt(i-1,N,k+1) + x->valAt(i-1,N,k-1) + x->valAt(i,N,k-1) + x->valAt(i+1,N,k-1);
+            x->valAt(i,0,k) /= b!=0 ? 1 : 9;
+            x->valAt(i,N+1,k) /= b!=0 ? 1 : 9;
 
             // Sides aligned with z axis
             x->valAt(i,k,0) = b==3 ? -x->valAt(i,1,k) : x->valAt(i,k,1);
