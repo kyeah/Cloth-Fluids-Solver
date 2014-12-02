@@ -31,8 +31,7 @@ public:
     void stableFluidSolve();
     void diffuse(Mat3D *x, Mat3D *xprev);
     void advect(Mat3D *x, Mat3D *xprev, Mat3D *vx, Mat3D *vy, Mat3D *vz);
-    void project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz,
-                 Mat3D *fluidvx_prev, Mat3D *fluidvy_prev, Mat3D *fluidvz_prev);
+    void project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz);
 
     void bound_mat(int gridSize, int b, Mat3D *x);
 

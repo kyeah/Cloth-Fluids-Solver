@@ -314,7 +314,7 @@ void Simulation::advect(Mat3D *x, Mat3D *xprev, Mat3D *vx, Mat3D *vy, Mat3D *vz)
     bound_mat (n, 0, x);
 }
 
-void Simulation::project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz, Mat3D *fluidvx_prev, Mat3D *fluidvy_prev, Mat3D *fluidvz_prev) {
+void Simulation::project(Mat3D *fluidvx, Mat3D *fluidvy, Mat3D *fluidvz) {
     /*
      * Conserves Mass within the System.
      */
@@ -407,7 +407,7 @@ void Simulation::stableFluidSolve() {
   bound_mat (n, 3, fluidvz);
 
   // Pre-Projection
-  project(fluidvx, fluidvy, fluidvz, fluidvx_prev, fluidvy_prev, fluidvz_prev);
+  project(fluidvx, fluidvy, fluidvz);
 
    // Velocity Self-Advection
   SWAP_MAT(fluidvx_prev, fluidvx)
@@ -421,6 +421,6 @@ void Simulation::stableFluidSolve() {
   bound_mat (n, 3, fluidvz);
 
   // Post-Projection
-  project(fluidvx, fluidvy, fluidvz, fluidvx_prev, fluidvy_prev, fluidvz_prev);
+  project(fluidvx, fluidvy, fluidvz);
 
 }
