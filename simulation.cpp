@@ -387,13 +387,15 @@ void Simulation::stableFluidSolve() {
   advect(fluiddensity, fluiddensity_prev, fluidvx, fluidvy, fluidvz);
 
   // Add forces to velocity
-  for (int i = 1; i <= n; i++) {
+  if (params_.activeForces & SimParameters::F_GRAVITY) {
+    for (int i = 1; i <= n; i++) {
       for (int j = 1; j <= n; j++) {
-          for (int k = 1; k <= n; k++) {
-              fluidvy_prev->valAt(i, j, k) += params_.gravityG;
-              fluidvy->valAt(i, j, k) += params_.gravityG;
-          }
+        for (int k = 1; k <= n; k++) {
+          fluidvy_prev->valAt(i, j, k) += params_.gravityG;
+          fluidvy->valAt(i, j, k) += params_.gravityG;
+        }
       }
+    }
   }
 
   bound_mat (n, 1, fluidvx);
