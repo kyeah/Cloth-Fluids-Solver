@@ -21,6 +21,7 @@ Cloth::Cloth() {
 void Cloth::computeMassMatrices() {
     int numVerts = mesh_->getNumVerts();
     VectorXd vertMasses(numVerts);
+    vertMasses.setZero();
 
     for(int i=0; i < mesh_->getNumFaces(); i++)
     {
