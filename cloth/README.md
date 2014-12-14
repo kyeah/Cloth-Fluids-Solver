@@ -1,6 +1,7 @@
 Kevin Yeh (kky226)
 ======================
 
-Sketchy Functionality:
+CLOTH!!!!
 
-Bending Force results in cloth scrunching. :(
+
+TODO: Deformable Bodies.

@@ -1,13 +1,13 @@
-Cloth/Fluids Solver
-================
+3D Fluid Solver
+Kevin Yeh (kky226)
+====================
 
-[WIP, Unorganized]
+This program is equipped with basic fluid interactions. The implementation is based off of the Stable Fluids paper by Jos Stam.
 
-This program is equipped with basic Disney magic for cloth simulation and fluid interactions. The implementations are based off of the following:
+The fluids are rendered using GL_POINTS at a large radius, so it will only be visible at certain angles. No true voxel rendering is provided at this time.
 
-* Cloth: Stretching, Hinge Bending potentials with penalty-force collisions on signed distance fields
-* Fluids: [Stable Fluids](http://www.autodeskresearch.com/pdf/ns.pdf) by Jos Stam
+On startup, the user can click and drag on the screen to generate a very dense fluid particle at (x,y,gridSize/2). This will diffuse rapidly when the simulation is running to create a large stream of fluid, so very small user interactions go a long way. When the fluids drag force checkbox is enabled, mouse dragging will instead apply external forces on the system, again at (x,y,gridSize/2). This is much more noticeable if gravity is turned off.
 
-![Cloth](http://kyeh.me/img/projects/cloth.png) ![Fluids 3D](http://kyeh.me/img/projects/fluids-3d.png)
+The bounds will keep fluid density in, as long as the gravity is very small.
 
-A 2D fluids version is available under the fluids-2d branch, but may be outdated at the time of reading.
+Tunable Parameters: Diffusion Rate, Timestep, Gravity, User Drag Force
