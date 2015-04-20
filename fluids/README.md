@@ -1,5 +1,4 @@
 3D Fluid Solver
-Kevin Yeh (kky226)
 ====================
 
 This program is equipped with basic fluid interactions. The implementation is based off of the Stable Fluids paper by Jos Stam.
@@ -11,3 +10,5 @@ On startup, the user can click and drag on the screen to generate a very dense f
 The bounds will keep fluid density in, as long as the gravity is very small.
 
 Tunable Parameters: Diffusion Rate, Timestep, Gravity, User Drag Force
+
+Read more about the implementation here: [Report](https://github.com/kyeah/Cloth-Fluids-Solver/tree/fluids-only/fluids/report.pdf).
